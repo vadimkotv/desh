@@ -26,6 +26,7 @@ export const toInvestment = (i: DbInvestment): Investment => ({
   txHash: i.txHash,
   status: i.status,
   error: i.error,
+  claimedUsdc: decimalToNumber(i.claimedUsdc),
   createdAt: i.createdAt.toISOString(),
 });
 
@@ -40,6 +41,8 @@ export const toRound = (r: DbRound): Round => ({
   deadline: r.deadline.toISOString(),
   status: r.status,
   milestones: r.milestones as Milestone[],
+  returnCapBps: r.returnCapBps,
+  distributedUsdc: decimalToNumber(r.distributedUsdc),
 });
 
 export const toRoundDetail = (

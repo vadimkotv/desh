@@ -21,6 +21,17 @@ export class PrismaInvestmentRepository implements InvestmentRepository {
     await this.prisma.investment.update({ where: { id }, data: { status, error } });
   }
 
+  async addClaimed(agentId: string, roundId: string, amountUsdc: number): Promise<void> {
+    // Attribute the claim to the agent's first confirmed ticket in this round.
+    const first = await this.prisma.investment.findFirst({ where: { agentId, roundId, status: 'CONFIRMED' }, orderBy: { createdAt: 'asc' } });
+    if (first) await this.prisma.investment.update({ where: { id: first.id }, data: { claimedUsdc: { increment: amountUsdc } } });
+  }
+
+  async confirmedByRound(roundId: string): Promise<Investment[]> {
+    const rows = await this.prisma.investment.findMany({ where: { roundId, status: 'CONFIRMED' }, orderBy: { createdAt: 'asc' } });
+    return rows.map(toInvestment);
+  }
+
   async spentSince(agentId: string, since: Date): Promise<number> {
     const agg = await this.prisma.investment.aggregate({
       _sum: { amountUsdc: true },

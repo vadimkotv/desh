@@ -52,6 +52,7 @@ model Investment {
   txHash     String?
   status     InvestmentStatus @default(PENDING)
   error      String?
+  claimedUsdc Decimal         @default(0) @db.Decimal(18, 6)
   createdAt  DateTime         @default(now())
 }
 

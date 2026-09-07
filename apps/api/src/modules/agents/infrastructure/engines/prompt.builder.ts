@@ -22,7 +22,7 @@ export function buildUserPrompt(input: DecisionInput): string {
   return [
     `## Mandate\nThesis: ${mandate.thesis}\nSectors: ${mandate.sectors.join(', ')}\nRisk tolerance: ${mandate.riskTolerance}\nMinimum score: ${mandate.minScore}`,
     `USDC ceiling for THIS decision (already policy-bounded): ${maxAmountUsdc}`,
-    `## Round\nStartup: ${s.name} (${s.sector})\n${s.description}\nTarget: ${round.targetUsdc} USDC, raised so far: ${round.raisedUsdc} USDC, min ticket: ${round.minTicketUsdc}\nDeadline: ${round.deadline}\nMilestones: ${round.milestones.map((m) => `${m.title} (${m.releaseBps / 100}%)`).join('; ')}`,
+    `## Round\nStartup: ${s.name} (${s.sector})\n${s.description}\nTarget: ${round.targetUsdc} USDC, raised so far: ${round.raisedUsdc} USDC, min ticket: ${round.minTicketUsdc}\nDeadline: ${round.deadline}\nReturn model: revenue share, investors repaid pro-rata from revenue up to ${round.returnCapBps / 100}% of principal (cap)\nMilestones: ${round.milestones.map((m) => `${m.title} (${m.releaseBps / 100}%)`).join('; ')}`,
     `## Due-diligence report\nComposite score: ${report.score}/100, data coverage: ${report.dataCoverage}\n${report.summary}\n\nFindings:\n${findings}\n\nRaw signals:\n${signals}`,
     `## Context\n${rep}`,
     `Decide: INVEST (with amountUsdc in (0, ${maxAmountUsdc}]), WATCH, or PASS.`,

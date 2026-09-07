@@ -12,11 +12,11 @@ export class StatsQuery {
     const p = this.prisma;
     const [rounds, openRounds, agents, decisions, investments, dataPurchases, auditEntries, hcsAnchored] =
       await Promise.all([
-        p.round.aggregate({ _count: true, _sum: { raisedUsdc: true, targetUsdc: true } }),
+        p.round.aggregate({ _count: true, _sum: { raisedUsdc: true, targetUsdc: true, distributedUsdc: true } }),
         p.round.count({ where: { status: 'OPEN' } }),
         p.agent.count(),
         p.decision.count(),
-        p.investment.aggregate({ _count: true, _sum: { amountUsdc: true }, where: { status: 'CONFIRMED' } }),
+        p.investment.aggregate({ _count: true, _sum: { amountUsdc: true, claimedUsdc: true }, where: { status: 'CONFIRMED' } }),
         p.paymentReceipt.count({ where: { success: true } }),
         p.auditEntry.count(),
         p.auditEntry.count({ where: { hcsSequenceNumber: { not: null } } }),
@@ -31,6 +31,8 @@ export class StatsQuery {
       investments: investments._count,
       investedUsdc: decimalToNumber(investments._sum.amountUsdc ?? 0),
       dataPurchases,
+      distributedUsdc: decimalToNumber(rounds._sum.distributedUsdc ?? 0),
+      claimedUsdc: decimalToNumber(investments._sum.claimedUsdc ?? 0),
       auditEntries,
       hcsAnchored,
     };

@@ -26,10 +26,25 @@ model Round {
   deadline       DateTime
   status         RoundStatus          @default(OPEN)
   milestones     Json
+  returnCapBps   Int                  @default(15000)
+  distributedUsdc Decimal             @default(0) @db.Decimal(18, 6)
   createdAt      DateTime             @default(now())
   reports        DueDiligenceReport[]
   decisions      Decision[]
   investments    Investment[]
+  distributions  Distribution[]
+}
+
+model Distribution {
+  id         String   @id @default(uuid())
+  roundId    String
+  round      Round    @relation(fields: [roundId], references: [id])
+  amountUsdc Decimal  @db.Decimal(18, 6)
+  txHash     String?
+  source     String
+  createdAt  DateTime @default(now())
+
+  @@index([roundId, createdAt])
 }
 
 model DataRoomSnapshot {

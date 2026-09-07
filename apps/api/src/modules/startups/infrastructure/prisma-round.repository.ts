@@ -19,6 +19,7 @@ export class PrismaRoundRepository implements RoundRepository {
         minTicketUsdc: input.minTicketUsdc,
         deadline: new Date(input.deadline),
         milestones: asJson(input.milestones),
+        returnCapBps: input.returnCapBps,
         onchainRoundId: onchain?.onchainRoundId,
         escrowAddress: onchain?.escrowAddress,
       },
@@ -59,5 +60,9 @@ export class PrismaRoundRepository implements RoundRepository {
 
   async setStatus(id: string, status: RoundStatus): Promise<void> {
     await this.prisma.round.update({ where: { id }, data: { status } });
+  }
+
+  async syncOnchain(id: string, state: { status: RoundStatus; raisedUsdc: number; distributedUsdc: number }): Promise<void> {
+    await this.prisma.round.update({ where: { id }, data: state });
   }
 }

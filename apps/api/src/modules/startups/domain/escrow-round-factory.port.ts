@@ -7,6 +7,7 @@ export interface CreateEscrowRoundParams {
   targetUsdc: number;
   deadline: Date;
   milestoneBps: number[];
+  returnCapBps: number;
 }
 
 // Port implemented by the settlement module (Arc RoundEscrow). Startups depends on the

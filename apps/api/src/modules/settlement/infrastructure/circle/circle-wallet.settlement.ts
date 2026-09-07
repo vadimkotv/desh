@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ARC_TESTNET } from '@agentipo/shared';
 import { toBaseUnits } from '../../../../common/money';
-import type { InvestParams, SettlementRail, TxSubmission } from '../../domain/settlement.port';
+import type { AgentWalletRef, InvestParams, SettlementRail, TxSubmission } from '../../domain/settlement.port';
 import { ArcClients } from '../arc/arc-clients';
 import { CircleClientProvider } from './circle-client';
 
@@ -29,6 +29,12 @@ export class CircleWalletSettlement implements SettlementRail {
       String(onchainRoundId),
       amount,
     ]);
+    return { txHash, chainId: this.arc.chain.id };
+  }
+
+  async claim(wallet: AgentWalletRef, onchainRoundId: number): Promise<TxSubmission> {
+    if (!wallet.circleWalletId) throw new Error('agent has no Circle wallet');
+    const txHash = await this.execute(wallet.circleWalletId, this.arc.escrowAddress, 'claim(uint256)', [String(onchainRoundId)]);
     return { txHash, chainId: this.arc.chain.id };
   }
 

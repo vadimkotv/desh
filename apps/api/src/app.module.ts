@@ -11,6 +11,7 @@ import { HealthModule } from './modules/health/health.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { SettlementModule } from './modules/settlement/settlement.module';
 import { StartupsModule } from './modules/startups/startups.module';
+import { ReturnsModule } from './modules/returns/returns.module';
 import { StatsModule } from './modules/stats/stats.module';
 
 @Module({
@@ -27,6 +28,7 @@ import { StatsModule } from './modules/stats/stats.module';
     SettlementModule,
     AuditModule,
     AgentsModule,
+    ReturnsModule,
     StatsModule,
   ],
 })

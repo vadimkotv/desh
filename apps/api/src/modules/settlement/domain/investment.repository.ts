@@ -15,4 +15,6 @@ export interface InvestmentRepository {
   setSubmitted(id: string, txHash: string, chainId: number): Promise<void>;
   setStatus(id: string, status: InvestmentStatus, error?: string): Promise<void>;
   spentSince(agentId: string, since: Date): Promise<number>;
+  addClaimed(agentId: string, roundId: string, amountUsdc: number): Promise<void>;
+  confirmedByRound(roundId: string): Promise<Investment[]>;
 }

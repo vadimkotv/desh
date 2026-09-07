@@ -16,4 +16,5 @@ export interface RoundRepository {
   findOpenBySectors(sectors: string[]): Promise<RoundDetail[]>;
   addRaised(id: string, amountUsdc: number): Promise<void>;
   setStatus(id: string, status: RoundStatus): Promise<void>;
+  syncOnchain(id: string, state: { status: RoundStatus; raisedUsdc: number; distributedUsdc: number }): Promise<void>;
 }

@@ -10,6 +10,9 @@ import { SETTLEMENT_RAIL, type SettlementRail } from './domain/settlement.port';
 import { ArcClients } from './infrastructure/arc/arc-clients';
 import { ArcEscrowReader } from './infrastructure/arc/escrow.reader';
 import { ArcEscrowRoundFactory } from './infrastructure/arc/escrow-round.factory';
+import { ArcEscrowOperator } from './infrastructure/arc/escrow.operator';
+import { PlatformSigner } from './infrastructure/arc/platform-signer';
+import { ESCROW_OPERATOR } from './domain/escrow-operator.port';
 import { LocalKeySettlement } from './infrastructure/arc/local-key.settlement';
 import { CircleClientProvider } from './infrastructure/circle/circle-client';
 import { CircleWalletFactory } from './infrastructure/circle/circle-wallet.factory';
@@ -31,6 +34,8 @@ import { SettlementController } from './presentation/settlement.controller';
     CircleWalletSettlement,
     ArcEscrowReader,
     ArcEscrowRoundFactory,
+    ArcEscrowOperator,
+    PlatformSigner,
     WalletBalanceQuery,
     SettlementRailResolver,
     SubmitInvestmentUseCase,
@@ -51,6 +56,11 @@ import { SettlementController } from './presentation/settlement.controller';
       useFactory: (cfg: AppConfig, reader: ArcEscrowReader) => (cfg.env.ARC_ESCROW_ADDRESS ? reader : null),
     },
     {
+      provide: ESCROW_OPERATOR,
+      inject: [AppConfig, ArcEscrowOperator],
+      useFactory: (cfg: AppConfig, op: ArcEscrowOperator) => (cfg.features.arcEscrow ? op : null),
+    },
+    {
       provide: ESCROW_ROUND_FACTORY,
       inject: [AppConfig, ArcEscrowRoundFactory],
       useFactory: (cfg: AppConfig, factory: ArcEscrowRoundFactory) => (cfg.features.arcEscrow ? factory : null),
@@ -59,6 +69,7 @@ import { SettlementController } from './presentation/settlement.controller';
   exports: [
     ESCROW_ROUND_FACTORY,
     ESCROW_READER,
+    ESCROW_OPERATOR,
     INVESTMENT_REPOSITORY,
     SubmitInvestmentUseCase,
     WalletBalanceQuery,

@@ -52,5 +52,6 @@ import { RunsController } from './presentation/runs.controller';
       useFactory: (llm: LlmDecisionEngine, rules: RulesDecisionEngine) => [llm, rules],
     },
   ],
+  exports: [AgentQueries],
 })
 export class AgentsModule {}

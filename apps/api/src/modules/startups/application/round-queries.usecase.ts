@@ -38,4 +38,8 @@ export class RoundQueries {
   recordRaised(roundId: string, amountUsdc: number): Promise<void> {
     return this.rounds.addRaised(roundId, amountUsdc);
   }
+
+  syncOnchain(roundId: string, state: { status: RoundStatus; raisedUsdc: number; distributedUsdc: number }): Promise<void> {
+    return this.rounds.syncOnchain(roundId, state);
+  }
 }

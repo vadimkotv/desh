@@ -15,7 +15,8 @@
     "prisma:seed": "tsx prisma/seed.ts",
     "agent:run": "tsx scripts/run-agent.ts",
     "dev:facilitator-stub": "tsx scripts/stub-facilitator.ts",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "demo:flow": "tsx scripts/demo-flow.ts"
   },
   "dependencies": {
     "@agentipo/shared": "workspace:*",

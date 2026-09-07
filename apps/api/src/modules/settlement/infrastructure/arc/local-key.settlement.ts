@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ARC_TESTNET } from '@agentipo/shared';
 import { erc20Abi } from 'viem';
 import { toBaseUnits } from '../../../../common/money';
-import type { InvestParams, SettlementRail, TxSubmission } from '../../domain/settlement.port';
+import type { AgentWalletRef, InvestParams, SettlementRail, TxSubmission } from '../../domain/settlement.port';
 import { AgentKeyDerivation } from '../keys/agent-key.derivation';
 import { ArcClients } from './arc-clients';
 import { roundEscrowAbi } from './escrow.abi';
@@ -41,6 +41,16 @@ export class LocalKeySettlement implements SettlementRail {
       functionName: 'invest', args: [BigInt(onchainRoundId), amount],
     });
     this.log.log(`invest tx ${txHash} (round ${onchainRoundId}, ${amountUsdc} USDC)`);
+    return { txHash, chainId: this.arc.chain.id };
+  }
+
+  async claim(wallet: AgentWalletRef, onchainRoundId: number): Promise<TxSubmission> {
+    const account = this.keys.account(wallet.keyIndex);
+    const txHash = await this.arc.wallet(account).writeContract({
+      account, chain: this.arc.chain, address: this.arc.escrowAddress, abi: roundEscrowAbi,
+      functionName: 'claim', args: [BigInt(onchainRoundId)],
+    });
+    this.log.log(`claim tx ${txHash} (round ${onchainRoundId}, ${account.address})`);
     return { txHash, chainId: this.arc.chain.id };
   }
 

@@ -12,6 +12,7 @@ enum RoundStatus {
   FUNDED
   FAILED
   CLOSED
+  REPAID
 }
 
 enum WalletKind {

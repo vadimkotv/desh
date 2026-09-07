@@ -25,5 +25,7 @@ export interface TxSubmission {
 export interface SettlementRail {
   readonly kind: WalletKind;
   invest(params: InvestParams): Promise<TxSubmission>;
+  // Pull the agent's claimable revenue-share returns out of the escrow.
+  claim(wallet: AgentWalletRef, onchainRoundId: number): Promise<TxSubmission>;
   waitForConfirmation(txHash: string): Promise<boolean>;
 }

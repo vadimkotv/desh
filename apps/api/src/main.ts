@@ -4,6 +4,7 @@ import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { ChainErrorFilter } from './common/http/chain-error.filter';
 import { AppConfig } from './config/app-config';
 
 async function bootstrap(): Promise<void> {
@@ -12,6 +13,7 @@ async function bootstrap(): Promise<void> {
 
   app.enableCors({ origin: config.env.CORS_ORIGIN.split(','), credentials: false });
   app.enableShutdownHooks();
+  app.useGlobalFilters(new ChainErrorFilter());
 
   const doc = new DocumentBuilder()
     .setTitle('AgentIPO API')
