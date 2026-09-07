@@ -9,6 +9,10 @@ export const AuditKind = z.enum([
   'INVESTMENT_SUBMITTED',
   'INVESTMENT_CONFIRMED',
   'INVESTMENT_FAILED',
+  'ROUND_FINALIZED',
+  'MILESTONE_RELEASED',
+  'REVENUE_DISTRIBUTED',
+  'RETURN_CLAIMED',
 ]);
 export type AuditKind = z.infer<typeof AuditKind>;
 

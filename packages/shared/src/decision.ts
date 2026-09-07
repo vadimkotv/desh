@@ -26,6 +26,7 @@ export const InvestmentSchema = z.object({
   txHash: z.string().nullable(),
   status: InvestmentStatus,
   error: z.string().nullable(),
+  claimedUsdc: z.number().default(0),
   createdAt: z.string(),
 });
 export type Investment = z.infer<typeof InvestmentSchema>;

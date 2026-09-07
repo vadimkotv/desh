@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const evmAddress = z.string().regex(/^0x[0-9a-fA-F]{40}$/, 'invalid EVM address');
 
-export const RoundStatus = z.enum(['OPEN', 'FUNDED', 'FAILED', 'CLOSED']);
+export const RoundStatus = z.enum(['OPEN', 'FUNDED', 'FAILED', 'CLOSED', 'REPAID']);
 export type RoundStatus = z.infer<typeof RoundStatus>;
 
 export const MilestoneSchema = z.object({
@@ -30,6 +30,8 @@ export const CreateRoundSchema = z.object({
   minTicketUsdc: z.number().positive().default(10),
   deadline: z.string().datetime(),
   milestones: z.array(MilestoneSchema).min(1),
+  // Revenue-share return cap: investors are repaid pro-rata from revenue up to raised × cap.
+  returnCapBps: z.number().int().min(10_000).max(50_000).default(15_000),
 });
 export type CreateRound = z.infer<typeof CreateRoundSchema>;
 
@@ -50,6 +52,8 @@ export const RoundSchema = z.object({
   deadline: z.string(),
   status: RoundStatus,
   milestones: z.array(MilestoneSchema),
+  returnCapBps: z.number().int(),
+  distributedUsdc: z.number(),
   startup: StartupSchema.optional(),
 });
 export type Round = z.infer<typeof RoundSchema>;

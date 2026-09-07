@@ -50,6 +50,8 @@ export const StatsSchema = z.object({
   investments: z.number(),
   investedUsdc: z.number(),
   dataPurchases: z.number(),
+  distributedUsdc: z.number(),
+  claimedUsdc: z.number(),
   auditEntries: z.number(),
   hcsAnchored: z.number(),
 });
