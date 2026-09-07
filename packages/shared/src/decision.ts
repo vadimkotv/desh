@@ -25,6 +25,7 @@ export const InvestmentSchema = z.object({
   chainId: z.number(),
   txHash: z.string().nullable(),
   status: InvestmentStatus,
+  error: z.string().nullable(),
   createdAt: z.string(),
 });
 export type Investment = z.infer<typeof InvestmentSchema>;
