@@ -16,4 +16,8 @@ export class ReportQueries {
     const { id, score, summary, dataCoverage, createdAt } = await this.full(roundId);
     return { id, roundId, score, summary, dataCoverage, createdAt };
   }
+
+  history(roundId: string) {
+    return this.reports.history(roundId);
+  }
 }

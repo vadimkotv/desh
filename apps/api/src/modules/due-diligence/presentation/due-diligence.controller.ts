@@ -24,6 +24,11 @@ export class DueDiligenceController {
     return this.queries.preview(id);
   }
 
+  @Get('rounds/:id/history')
+  history(@Param('id', ParseUUIDPipe) id: string) {
+    return this.queries.history(id);
+  }
+
   @Get('rounds/:id/premium')
   @ApiOperation({ summary: 'x402-gated: full findings and raw signals, generated on demand (paid per request on Hedera)' })
   premium(@Param('id', ParseUUIDPipe) id: string) {

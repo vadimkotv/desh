@@ -4,7 +4,7 @@ import type { DueDiligenceReport as DbReport } from '../../../generated/prisma/c
 import { asJson } from '../../../common/prisma/json';
 import { PrismaService } from '../../../common/prisma/prisma.service';
 import type { DraftReport } from '../domain/report.builder';
-import type { ReportRepository } from '../domain/report.repository';
+import type { ReportHistoryPoint, ReportRepository } from '../domain/report.repository';
 
 const toReport = (r: DbReport): DueDiligenceReport => ({
   id: r.id,
@@ -29,5 +29,15 @@ export class PrismaReportRepository implements ReportRepository {
   async latest(roundId: string): Promise<DueDiligenceReport | null> {
     const row = await this.prisma.dueDiligenceReport.findFirst({ where: { roundId }, orderBy: { createdAt: 'desc' } });
     return row ? toReport(row) : null;
+  }
+
+  async history(roundId: string, limit = 50): Promise<ReportHistoryPoint[]> {
+    const rows = await this.prisma.dueDiligenceReport.findMany({
+      where: { roundId },
+      orderBy: { createdAt: 'asc' },
+      take: limit,
+      select: { id: true, score: true, dataCoverage: true, createdAt: true },
+    });
+    return rows.map((r) => ({ ...r, createdAt: r.createdAt.toISOString() }));
   }
 }
