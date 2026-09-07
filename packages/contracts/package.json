@@ -1,0 +1,12 @@
+{
+  "name": "@agentipo/contracts",
+  "private": true,
+  "version": "0.1.0",
+  "description": "RoundEscrow — milestone USDC escrow for AgentIPO rounds on Arc testnet (Foundry)",
+  "scripts": {
+    "build": "forge build",
+    "test": "forge test -vv",
+    "export-abi": "node scripts/export-abi.mjs",
+    "deploy:arc": "forge script script/Deploy.s.sol --rpc-url arc_testnet --broadcast --private-key $DEPLOYER_PRIVATE_KEY"
+  }
+}
