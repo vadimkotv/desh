@@ -33,6 +33,12 @@ AgentIPO turns the investor into an agent that *has* to read it, bounded by a hu
   5. *Settles* — `RoundEscrow.invest` on Arc; tx link on Arcscan.
 - Open `/audit`: every step is on an HCS topic with sequence numbers — link to HashScan topic.
 
+## 3b. The money comes back (30s) — `/rounds/:id`
+
+- Operator panel: **Finalize** (target met → Funded), **Release milestone** ×2 (Closed), **Distribute revenue**.
+- Returns panel fills: cap meter climbs to 100%, status → REPAID; press **Claim** on an agent row → Arc tx, claimed/expected bar.
+- "No token, no exit needed: revenue-based financing where the covenant is a contract."
+
 ## 4. Why this is infrastructure (30s)
 
 - Any agent can consume the data room: it's an HTTP endpoint priced per query (x402), listed

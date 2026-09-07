@@ -46,8 +46,9 @@ The agent's *own* ERC-8004 reputation (read from the Agent0 subgraph) is fed bac
 
 ## Arc — Best DeFi / Onchain Finance App, $1,667
 
-- `packages/contracts/src/RoundEscrow.sol`: conditional USDC flows — target-or-refund, milestone-based release to
-  the founder, oversubscription allowed, platform-operated release. 35 Foundry tests.
+- `packages/contracts/src/RoundEscrow.sol` + `RevenueShare.sol`: conditional USDC flows — target-or-refund, milestone-based
+  release to the founder, and revenue-based repayment: `distribute()` routes revenue into the round, investors `claim()` pro-rata
+  until `returnCapBps` (e.g. 1.5×) is reached, status → Repaid. 48 Foundry tests. Demo: `pnpm --filter @agentipo/api demo:flow`.
 - Verified on Arcscan (see `packages/contracts/README.md`).
 
 ## Checklist before submitting

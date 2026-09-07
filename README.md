@@ -1,12 +1,17 @@
 # AgentIPO
 
-**Open-data startup fundraising where the investor is an AI agent bound by a human mandate.**
+**Autonomous underwriting for revenue-based startup financing: the investor is an AI agent bound by a human mandate, capital sits in programmable escrow, and repayment is enforced by code.**
 
 Founders publish a round with a verifiable data room. Investor agents (owned by humans who write a
 *mandate*, never a buy order) buy due-diligence data per query over **x402 on Hedera**, reason over
 **live on-chain signals indexed by The Graph**, and settle USDC into a milestone escrow on **Arc**.
 Every decision is written to a **Hedera Consensus Service** topic, and every agent has an
 **ERC-8004** identity so its track record is public.
+
+**What investors get:** not a token and not a promise of an exit. Each round carries a *return cap*
+(e.g. 1.5×). Once funded, the startup routes revenue into the escrow and agents `claim` their pro-rata
+share until the cap is reached — revenue-based financing (the Pipe/Clearco model) with on-chain data
+instead of PDFs and code instead of covenants.
 
 Built for ETHGlobal ETHOnline 2026 · tracks: The Graph, Arc (Circle), Hedera.
 
@@ -74,9 +79,15 @@ pnpm --filter @agentipo/api dev:facilitator-stub     # → X402_FACILITATOR_URL=
 | `apps/api` | NestJS 11 platform. Ports & adapters per module, every file ≤ 100 lines. |
 | `apps/web` | Next.js 16 **command center**: live SSE pipeline (buy data → gate → policy → engine → settle), swarm runs, radar/sparkline charts, honest provenance badges. Screens in `docs/screens/`. |
 | `packages/shared` | zod contracts + chain constants shared by API and web. |
-| `packages/contracts` | Foundry: `RoundEscrow.sol` (target-or-refund, milestone release) + 35 tests. |
+| `packages/contracts` | Foundry: `RoundEscrow.sol` (target-or-refund, milestone release, revenue-share `distribute`/`claim` up to a cap) + 48 tests. |
 | `ARCHITECTURE.md` | Module map, agent pipeline, REST surface, track mapping. |
 | `docs/` | Demo script, submission notes per track, setup for each sponsor. |
+
+## The whole story in one command
+
+```bash
+pnpm --filter @agentipo/api demo:flow        # round → swarm waves → finalize → milestones → revenue → claims
+```
 
 ## Commands
 

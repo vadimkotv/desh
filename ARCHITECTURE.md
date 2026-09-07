@@ -38,7 +38,7 @@ flowchart LR
 | The Graph — composable / standardized | Three Graph products composed: **Token API** (holders, transfers, balances), **Messari standardized DEX schema** (liquidity/volume across any DEX with one query), **Agent0 ERC-8004 subgraph** (identity + reputation). |
 | Hedera — AI & agentic payments | `GET /due-diligence/rounds/:id/premium` is x402-gated; settlement through Blocky402 facilitator on Hedera testnet. Agents pay per request with USDC/HBAR. Decisions are written to an HCS topic (bonus). ERC-8004 identity (bonus). |
 | Arc — agentic economy w/ Circle Agent Stack | Agents hold wallets (local key or Circle developer-controlled wallet on `ARC-TESTNET`), decide from real signals, enforce spending policy, settle USDC into `RoundEscrow`. |
-| Arc — DeFi / programmable money | `RoundEscrow.sol`: conditional USDC flows — target-or-refund, milestone-based release to the founder. |
+| Arc — DeFi / programmable money | `RoundEscrow.sol`: conditional USDC flows — target-or-refund, milestone-based release to the founder, and revenue-share repayment (`distribute` → pro-rata `claim` up to `returnCapBps`). |
 
 ## 3. Monorepo layout
 
@@ -71,6 +71,7 @@ modules/<name>/
 | `settlement` | Arc escrow interaction; wallets; spending policy | `SettlementRail`, `EscrowReader`, `AgentWalletFactory` |
 | `agents` | Mandates, ERC-8004 identity, decision engines, run loop | `DecisionEngine`, `AgentIdentity`, `AgentRepository` |
 | `audit` | Append-only log mirrored to Hedera Consensus Service | `AuditLog`, `ConsensusPublisher` |
+| `returns` | Round lifecycle (finalize, milestones, revenue distribution) and agent claims | `EscrowOperator`, `DistributionRepository` |
 
 ### Agent run pipeline (`agents/application/run-agent.usecase.ts`)
 
@@ -104,6 +105,9 @@ modules/<name>/
 | GET | `/agents/:id/decisions`, `/decisions` | decision feed |
 | GET | `/due-diligence/rounds/:id/history` | score history for sparklines |
 | GET | `/stats` | KPI strip |
+| POST | `/rounds/:id/finalize`, `/rounds/:id/milestones/release`, `/rounds/:id/distribute`, `/rounds/:id/sync` | operator lifecycle on the Arc escrow |
+| GET | `/rounds/:id/returns`, `/rounds/:id/distributions` | cap, distributed, per-investor claimable/claimed |
+| POST | `/agents/:id/claim?roundId=` | agent claims its revenue share with its own key |
 | GET | `/payments/receipts` | x402 receipts |
 | GET | `/audit` | audit entries with HCS sequence numbers |
 | GET | `/health` | |
