@@ -1,0 +1,60 @@
+model Startup {
+  id              String             @id @default(uuid())
+  name            String
+  description     String
+  sector          String
+  website         String?
+  founderAddress  String
+  treasuryAddress String
+  tokenAddress    String?
+  tokenNetwork    String             @default("mainnet")
+  githubRepo      String?
+  createdAt       DateTime           @default(now())
+  rounds          Round[]
+  snapshots       DataRoomSnapshot[]
+}
+
+model Round {
+  id             String               @id @default(uuid())
+  startupId      String
+  startup        Startup              @relation(fields: [startupId], references: [id])
+  onchainRoundId Int?
+  escrowAddress  String?
+  targetUsdc     Decimal              @db.Decimal(18, 6)
+  raisedUsdc     Decimal              @default(0) @db.Decimal(18, 6)
+  minTicketUsdc  Decimal              @default(10) @db.Decimal(18, 6)
+  deadline       DateTime
+  status         RoundStatus          @default(OPEN)
+  milestones     Json
+  createdAt      DateTime             @default(now())
+  reports        DueDiligenceReport[]
+  decisions      Decision[]
+  investments    Investment[]
+}
+
+model DataRoomSnapshot {
+  id        String   @id @default(uuid())
+  startupId String
+  startup   Startup  @relation(fields: [startupId], references: [id])
+  source    String
+  signals   Json
+  error     String?
+  fetchedAt DateTime @default(now())
+
+  @@index([startupId, source, fetchedAt])
+}
+
+model DueDiligenceReport {
+  id           String     @id @default(uuid())
+  roundId      String
+  round        Round      @relation(fields: [roundId], references: [id])
+  score        Float
+  dataCoverage Float
+  summary      String
+  findings     Json
+  signals      Json
+  createdAt    DateTime   @default(now())
+  decisions    Decision[]
+
+  @@index([roundId, createdAt])
+}

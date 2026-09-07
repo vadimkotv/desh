@@ -1,0 +1,85 @@
+model Agent {
+  id              String       @id @default(uuid())
+  name            String
+  ownerAddress    String
+  walletKind      WalletKind   @default(LOCAL_KEY)
+  keyIndex        Int          @unique @default(autoincrement())
+  walletAddress   String?
+  circleWalletId  String?
+  hederaAccountId String?
+  erc8004AgentId  String?
+  erc8004ChainId  Int?
+  erc8004TxHash   String?
+  mandate         Json
+  createdAt       DateTime     @default(now())
+  decisions       Decision[]
+  investments     Investment[]
+  receipts        PaymentReceipt[]
+  auditEntries    AuditEntry[]
+}
+
+model Decision {
+  id              String              @id @default(uuid())
+  agentId         String
+  agent           Agent               @relation(fields: [agentId], references: [id])
+  roundId         String
+  round           Round               @relation(fields: [roundId], references: [id])
+  reportId        String?
+  report          DueDiligenceReport? @relation(fields: [reportId], references: [id])
+  action          DecisionAction
+  amountUsdc      Decimal             @default(0) @db.Decimal(18, 6)
+  confidence      Float
+  reasoning       String
+  keyRisks        Json
+  engine          String
+  dataPaymentTxId String?
+  investment      Investment?
+  createdAt       DateTime            @default(now())
+
+  @@index([agentId, createdAt])
+}
+
+model Investment {
+  id         String           @id @default(uuid())
+  decisionId String           @unique
+  decision   Decision         @relation(fields: [decisionId], references: [id])
+  roundId    String
+  round      Round            @relation(fields: [roundId], references: [id])
+  agentId    String
+  agent      Agent            @relation(fields: [agentId], references: [id])
+  amountUsdc Decimal          @db.Decimal(18, 6)
+  chainId    Int
+  txHash     String?
+  status     InvestmentStatus @default(PENDING)
+  error      String?
+  createdAt  DateTime         @default(now())
+}
+
+model PaymentReceipt {
+  id        String   @id @default(uuid())
+  agentId   String?
+  agent     Agent?   @relation(fields: [agentId], references: [id])
+  resource  String
+  network   String
+  asset     String
+  amount    String
+  payer     String
+  txId      String?
+  success   Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+model AuditEntry {
+  id                String   @id @default(uuid())
+  agentId           String?
+  agent             Agent?   @relation(fields: [agentId], references: [id])
+  kind              String
+  payload           Json
+  hcsTopicId        String?
+  hcsSequenceNumber Int?
+  createdAt         DateTime @default(now())
+
+  @@index([createdAt])
+}

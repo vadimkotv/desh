@@ -1,0 +1,32 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum RoundStatus {
+  OPEN
+  FUNDED
+  FAILED
+  CLOSED
+}
+
+enum WalletKind {
+  LOCAL_KEY
+  CIRCLE
+}
+
+enum DecisionAction {
+  INVEST
+  PASS
+  WATCH
+}
+
+enum InvestmentStatus {
+  PENDING
+  CONFIRMED
+  FAILED
+}
