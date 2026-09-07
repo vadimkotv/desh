@@ -55,7 +55,12 @@ export type OnchainRound = {
   releasedCount: number;
   investorCount: number;
   milestoneBps: number[];
+  returnCapBps?: number;
+  capUsdc?: number;
+  distributedUsdc?: number;
 };
+
+export type ClaimResult = { agentId: string; roundId: string; claimedUsdc: number; txHash: string | null; chainId: number };
 
 export type RunHandle = { runId: string };
 export type SwarmRun = { agentId: string; agentName: string; runId: string };

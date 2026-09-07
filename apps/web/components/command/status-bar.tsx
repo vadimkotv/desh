@@ -14,11 +14,11 @@ export function StatusBar({ health }: StatusBarProps) {
           <span className="live-dot mr-1.5">●</span>command center
         </p>
         <h1 className="mt-1 max-w-xl text-lg font-semibold leading-snug tracking-tight text-bright sm:text-xl">
-          Agents are buying data, deciding and settling <span className="text-accent">right now</span>.
+          Agents buy data, underwrite, fund milestone escrow and get repaid from revenue — <span className="text-accent">up to the cap</span>.
         </h1>
         <p className="mt-1 max-w-2xl text-[12.5px] text-muted">
-          Mandate-bound investor agents pay per query over x402 on Hedera, reason over Graph-indexed signals, and
-          settle USDC into milestone escrow on Arc. Every step streams below.
+          Revenue-based financing run by mandate-bound agents: x402 data on Hedera, Graph-indexed signals, USDC
+          escrow on Arc, pro-rata returns claimed from revenue. Every step streams below.
         </p>
       </div>
       <div className="flex flex-wrap gap-1.5" aria-label="integration status">

@@ -23,7 +23,7 @@ export function KpiStrip({ stats, investments, receipts }: KpiStripProps) {
   const purchases = cumulative(byTime(receipts).map(() => 1));
   const anchoredPct = percent(stats.hcsAnchored, stats.auditEntries);
   return (
-    <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
+    <div className="grid gap-2 sm:grid-cols-2 md:grid-cols-3 2xl:grid-cols-6">
       <StatTile
         label="Raised vs target"
         value={usdcCompact(stats.raisedUsdc)}
@@ -37,6 +37,13 @@ export function KpiStrip({ stats, investments, receipts }: KpiStripProps) {
         hint={`${stats.investments} tickets on Arc`}
         tone="accent"
         viz={invested.length > 1 ? <Sparkline values={invested} min={0} width={88} height={30} /> : undefined}
+      />
+      <StatTile
+        label="Returned to agents"
+        value={usdcCompact(stats.claimedUsdc)}
+        hint={`of ${usdcCompact(stats.distributedUsdc)} revenue distributed`}
+        tone="accent"
+        viz={<Ring value={percent(stats.claimedUsdc, stats.distributedUsdc)} size={44} stroke={5} color="var(--color-chart-accent)" showValue={false} />}
       />
       <StatTile label="Decisions" value={num(stats.decisions)} hint={`${stats.agents} agents · mandate-bound`} tone="agent" />
       <StatTile

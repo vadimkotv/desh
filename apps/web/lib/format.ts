@@ -52,6 +52,9 @@ export const bpsToPercent = (bps: number): string => `${(bps / 100).toFixed(bps 
 
 export const ratioToPercent = (ratio: number): string => `${Math.round(ratio * 100)}%`;
 
+// Maximum an investor gets back under revenue-based financing: amount × return cap.
+export const upTo = (amountUsdc: number, returnCapBps: number): number => (amountUsdc * returnCapBps) / 10_000;
+
 export const arcAddressUrl = (address: string): string =>
   `https://testnet.arcscan.app/address/${address}`;
 

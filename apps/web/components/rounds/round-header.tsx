@@ -1,11 +1,10 @@
 import { Meter } from '@/components/charts/meter';
-import { Badge } from '@/components/ui/badge';
+import { Badge, roundStatusTone } from '@/components/ui/badge';
 import { CopyButton } from '@/components/ui/copy-button';
 import { ExternalLink } from '@/components/ui/external-link';
+import { capMultiplier } from '@agentipo/shared';
 import { countdown, formatDate, percent, usdc } from '@/lib/format';
 import type { RoundDetail } from '@/lib/types';
-
-const statusTone = { OPEN: 'accent', FUNDED: 'info', FAILED: 'danger', CLOSED: 'neutral' } as const;
 
 export function RoundHeader({ round }: { round: RoundDetail }) {
   const { startup } = round;
@@ -19,8 +18,9 @@ export function RoundHeader({ round }: { round: RoundDetail }) {
           <div className="mt-1 flex flex-wrap items-center gap-2">
             <h1 className="text-2xl font-semibold tracking-tight text-bright">{startup.name}</h1>
             <Badge tone="info">{startup.sector}</Badge>
-            <Badge tone={statusTone[round.status]}>{round.status}</Badge>
+            <Badge tone={roundStatusTone[round.status]}>{round.status}</Badge>
             {round.escrowAddress && <Badge tone="accent">⛓ on-chain #{round.onchainRoundId}</Badge>}
+            <Badge tone="amber" title="return cap: investors are repaid from revenue up to this multiple">{capMultiplier(round.returnCapBps)} cap</Badge>
           </div>
           <p className="mt-2 max-w-2xl text-[13px] leading-relaxed text-muted">{startup.description}</p>
           <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 font-mono text-[11px]">

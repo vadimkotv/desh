@@ -1,19 +1,19 @@
 import Link from 'next/link';
-import type { Decision } from '@agentipo/shared';
+import { capMultiplier, type Decision } from '@agentipo/shared';
 import { ActionPill } from '@/components/ui/action-pill';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible } from '@/components/ui/collapsible';
 import { ConfidenceBar } from '@/components/ui/confidence-bar';
 import { ExternalLink } from '@/components/ui/external-link';
-import { formatDate, shortAddress, shortId, usdc } from '@/lib/format';
+import { formatDate, num, shortAddress, shortId, upTo, usdc } from '@/lib/format';
 import { hederaTxUrl, settlementTxUrl } from '@/lib/links';
 
-type DecisionItemProps = { decision: Decision; roundName?: string };
+type DecisionItemProps = { decision: Decision; roundName?: string; returnCapBps?: number };
 
 const investmentTone = { CONFIRMED: 'accent', FAILED: 'danger', PENDING: 'amber' } as const;
 
 // One decision on the timeline: verdict, amount, confidence, engine, links, reasoning.
-export function DecisionItem({ decision, roundName }: DecisionItemProps) {
+export function DecisionItem({ decision, roundName, returnCapBps }: DecisionItemProps) {
   const { investment } = decision;
   const dotTone = decision.action === 'INVEST' ? 'bg-accent' : decision.action === 'WATCH' ? 'bg-amber' : 'bg-line-strong';
   return (
@@ -24,6 +24,9 @@ export function DecisionItem({ decision, roundName }: DecisionItemProps) {
           <div className="flex flex-wrap items-center gap-2">
             <ActionPill action={decision.action} size="xs" />
             <span className="num text-[14px] font-semibold text-bright">{decision.amountUsdc > 0 ? usdc(decision.amountUsdc) : '—'}</span>
+            {decision.action === 'INVEST' && decision.amountUsdc > 0 && returnCapBps !== undefined && (
+              <span className="num text-[11px] text-accent" title={`return cap ${capMultiplier(returnCapBps)}`}>→ up to {num(upTo(decision.amountUsdc, returnCapBps))} back</span>
+            )}
             <Link href={`/rounds/${decision.roundId}`} className="font-mono text-[11px] text-info hover:underline">
               {roundName ?? `round ${shortId(decision.roundId)}`}
             </Link>

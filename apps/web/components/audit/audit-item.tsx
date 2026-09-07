@@ -13,6 +13,10 @@ const kindTone: Record<AuditKind, BadgeTone> = {
   INVESTMENT_SUBMITTED: 'amber',
   INVESTMENT_CONFIRMED: 'accent',
   INVESTMENT_FAILED: 'danger',
+  ROUND_FINALIZED: 'info',
+  MILESTONE_RELEASED: 'accent',
+  REVENUE_DISTRIBUTED: 'amber',
+  RETURN_CLAIMED: 'accent',
 };
 
 const dotTone: Record<AuditKind, string> = {
@@ -22,6 +26,10 @@ const dotTone: Record<AuditKind, string> = {
   INVESTMENT_SUBMITTED: 'bg-amber',
   INVESTMENT_CONFIRMED: 'bg-accent',
   INVESTMENT_FAILED: 'bg-danger',
+  ROUND_FINALIZED: 'bg-info',
+  MILESTONE_RELEASED: 'bg-accent',
+  REVENUE_DISTRIBUTED: 'bg-amber',
+  RETURN_CLAIMED: 'bg-accent',
 };
 
 type AuditItemProps = { entry: AuditEntry; agents: Map<string, Agent> };

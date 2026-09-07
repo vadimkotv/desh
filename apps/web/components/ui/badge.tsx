@@ -29,3 +29,11 @@ export const scoreTone = (score: number): BadgeTone =>
 
 export const scoreColor = (score: number): string =>
   score >= 70 ? 'var(--color-chart-accent)' : score >= 40 ? 'var(--color-chart-warn)' : 'var(--color-chart-danger)';
+
+export const roundStatusTone: Record<'OPEN' | 'FUNDED' | 'FAILED' | 'CLOSED' | 'REPAID', BadgeTone> = {
+  OPEN: 'accent',
+  FUNDED: 'info',
+  FAILED: 'danger',
+  CLOSED: 'agent',
+  REPAID: 'accent',
+};

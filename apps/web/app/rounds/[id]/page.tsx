@@ -1,6 +1,9 @@
 import { notFound } from 'next/navigation';
 import { DdSection } from '@/components/rounds/dd-section';
 import { InvestmentsList } from '@/components/rounds/investments-list';
+import { LifecycleStrip } from '@/components/rounds/lifecycle-strip';
+import { OperatorActions } from '@/components/rounds/operator-actions';
+import { ReturnsPanel } from '@/components/rounds/returns-panel';
 import { OnchainPanel } from '@/components/rounds/onchain-panel';
 import { RoundHeader } from '@/components/rounds/round-header';
 import { SignalsTable } from '@/components/rounds/signals-table';
@@ -21,14 +24,21 @@ export default async function RoundPage({ params }: RoundPageProps) {
   if (!roundResult.ok) notFound();
   const round = roundResult.data;
 
-  const [previewResult, historyResult, signalsResult, agentsResult, pricingResult, onchainResult] = await Promise.all([
-    api.ddPreview(round.id),
-    api.ddHistory(round.id),
-    api.signals(round.startupId),
-    api.agents(),
-    api.pricing(),
-    round.onchainRoundId !== null ? api.onchainRound(round.onchainRoundId) : Promise.resolve(null),
-  ]);
+  const onchain = round.onchainRoundId !== null;
+  const [previewResult, historyResult, signalsResult, agentsResult, pricingResult, onchainResult, returnsResult, distResult] =
+    await Promise.all([
+      api.ddPreview(round.id),
+      api.ddHistory(round.id),
+      api.signals(round.startupId),
+      api.agents(),
+      api.pricing(),
+      onchain ? api.onchainRound(round.onchainRoundId as number) : Promise.resolve(null),
+      onchain ? api.roundReturns(round.id) : Promise.resolve(null),
+      onchain ? api.distributions(round.id) : Promise.resolve(null),
+    ]);
+  const chain = onchainResult?.ok ? onchainResult.data : null;
+  const returns = returnsResult?.ok ? returnsResult.data : null;
+  const distributions = distResult?.ok ? distResult.data : [];
   const preview = previewResult.ok ? previewResult.data : null;
   const history = listOrEmpty(historyResult).items;
   const signals = listOrEmpty(signalsResult).items;
@@ -37,15 +47,18 @@ export default async function RoundPage({ params }: RoundPageProps) {
   return (
     <div className="flex flex-col gap-4">
       <RoundHeader round={round} />
+      <LifecycleStrip status={round.status} />
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="flex flex-col gap-4 lg:col-span-2">
           <DdSection roundId={round.id} startupId={round.startupId} preview={preview} history={history} />
-          <SwarmPanel roundId={round.id} agents={agents} />
+          <SwarmPanel roundId={round.id} agents={agents} returnCapBps={round.returnCapBps} status={round.status} />
+          <ReturnsPanel returns={returns} distributions={distributions} chainId={round.investments[0]?.chainId ?? 0} />
           <SignalsTable signals={signals} />
           <InvestmentsList investments={round.investments ?? []} agents={agents} />
         </div>
         <div className="flex flex-col gap-4">
-          <OnchainPanel round={round} onchain={onchainResult?.ok ? onchainResult.data : null} />
+          <OnchainPanel round={round} onchain={chain} />
+          {onchain && <OperatorActions round={round} releasedCount={chain?.releasedCount ?? 0} capUsdc={returns?.capUsdc ?? chain?.capUsdc ?? 0} />}
           <X402Callout roundId={round.id} pricing={pricingResult.ok ? pricingResult.data : null} />
         </div>
       </div>

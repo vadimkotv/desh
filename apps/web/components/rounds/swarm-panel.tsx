@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
-import type { Agent } from '@agentipo/shared';
+import type { Agent, RoundStatus } from '@agentipo/shared';
 import { RunSwarmButton } from '@/components/command/run-swarm-button';
 import { RunLive } from '@/components/live/run-live';
 import { Panel } from '@/components/ui/panel';
@@ -10,11 +10,11 @@ import type { SwarmRun } from '@/lib/api-types';
 import type { RunView } from '@/lib/run-state';
 import { SwarmTable } from './swarm-table';
 
-type SwarmPanelProps = { roundId: string; agents: Agent[] };
+type SwarmPanelProps = { roundId: string; agents: Agent[]; returnCapBps: number; status: RoundStatus };
 
 // Launches every agent on this round, streams one stepper per agent, and folds
 // their verdicts into the comparison table as they land.
-export function SwarmPanel({ roundId, agents }: SwarmPanelProps) {
+export function SwarmPanel({ roundId, agents, returnCapBps, status }: SwarmPanelProps) {
   const router = useRouter();
   const [runs, setRuns] = useState<SwarmRun[]>([]);
   const [views, setViews] = useState<Map<string, RunView>>(new Map());
@@ -32,6 +32,9 @@ export function SwarmPanel({ roundId, agents }: SwarmPanelProps) {
       title="Swarm"
       tone="agent"
       action={
+        status !== 'OPEN' ? (
+          <span className="font-mono text-[10.5px] text-muted">round {status.toLowerCase()} · no new tickets</span>
+        ) : (
         <RunSwarmButton
           roundId={roundId}
           size="sm"
@@ -41,6 +44,7 @@ export function SwarmPanel({ roundId, agents }: SwarmPanelProps) {
             setRuns(started);
           }}
         />
+        )
       }
     >
       {runs.length === 0 ? (
@@ -52,7 +56,7 @@ export function SwarmPanel({ roundId, agents }: SwarmPanelProps) {
         <div className="flex flex-col gap-4">
           <div>
             <p className="eyebrow mb-2">{allDone ? 'verdicts' : 'verdicts forming…'}</p>
-            <SwarmTable views={list} agents={agents} />
+            <SwarmTable views={list} agents={agents} returnCapBps={returnCapBps} />
           </div>
           <div className="grid gap-2 xl:grid-cols-2">
             {runs.map((run) => (

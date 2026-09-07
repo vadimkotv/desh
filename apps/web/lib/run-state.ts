@@ -11,6 +11,7 @@ export type RunDecision = {
   reasoning: string;
   engine: string;
   keyRisks: string[];
+  returnCapBps: number | null;
 };
 
 export type RunView = {
@@ -64,6 +65,7 @@ function decisionOf(events: RunEvent[]): RunDecision | null {
     confidence: numOr(p.confidence, 0),
     reasoning: str(p.reasoning) ?? (policy ? `spending policy: ${str(policy.reason) ?? 'no budget'}` : ''),
     engine: str(p.engine) ?? 'policy',
+    returnCapBps: typeof p.returnCapBps === 'number' ? p.returnCapBps : null,
     keyRisks: Array.isArray(p.keyRisks) ? p.keyRisks.filter((r): r is string => typeof r === 'string') : [],
   };
 }

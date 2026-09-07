@@ -20,6 +20,14 @@ export function auditSummary(entry: AuditEntry): string {
       return `confirmed on chain ${n(p.chainId)}${s(p.txHash) ? ` · ${shortAddress(s(p.txHash), 6)}` : ''}`;
     case 'INVESTMENT_FAILED':
       return `settlement failed · ${s(p.error) || (s(p.txHash) ? `tx ${shortAddress(s(p.txHash), 6)}` : 'no tx hash')}`;
+    case 'ROUND_FINALIZED':
+      return `⚑ round finalized · ${num(n(p.raisedUsdc))} USDC locked in escrow #${n(p.onchainId)}`;
+    case 'MILESTONE_RELEASED':
+      return `⛳ milestone ${n(p.index) + 1} “${s(p.milestone)}” released to founder`;
+    case 'REVENUE_DISTRIBUTED':
+      return `↻ ${num(n(p.amountUsdc))} USDC revenue routed to escrow · ${num(n(p.distributedUsdc))} total · ${s(p.status)}`;
+    case 'RETURN_CLAIMED':
+      return `↑ claimed ${num(n(p.claimedUsdc))} USDC return · ${num(n(p.totalClaimedUsdc))} total`;
     default:
       return entry.kind;
   }

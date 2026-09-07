@@ -1,8 +1,8 @@
 import Link from 'next/link';
-import type { DueDiligencePreview } from '@agentipo/shared';
+import { capMultiplier, type DueDiligencePreview } from '@agentipo/shared';
 import { Meter } from '@/components/charts/meter';
 import { Ring } from '@/components/charts/ring';
-import { Badge } from '@/components/ui/badge';
+import { Badge, roundStatusTone } from '@/components/ui/badge';
 import { countdown, percent, usdcCompact } from '@/lib/format';
 import type { RoundDetail } from '@/lib/types';
 import { RunSwarmButton } from './run-swarm-button';
@@ -22,6 +22,8 @@ export function RoundRow({ round, preview }: RoundRowProps) {
           </Link>
           <div className="mt-1 flex flex-wrap items-center gap-1">
             <Badge tone="info">{round.startup.sector}</Badge>
+            {round.status !== 'OPEN' && <Badge tone={roundStatusTone[round.status]}>{round.status}</Badge>}
+            <Badge tone="amber" title="return cap">{capMultiplier(round.returnCapBps)}</Badge>
             {round.escrowAddress ? (
               <Badge tone="accent" title={round.escrowAddress}>⛓ on-chain #{round.onchainRoundId}</Badge>
             ) : (
@@ -49,7 +51,7 @@ export function RoundRow({ round, preview }: RoundRowProps) {
           ⏱ {deadline.label}
           {!deadline.expired && ' left'}
         </span>
-        <RunSwarmButton roundId={round.id} />
+        {round.status === 'OPEN' ? <RunSwarmButton roundId={round.id} /> : <span className="num text-[10.5px] text-muted">repaid {usdcCompact(round.distributedUsdc)}</span>}
       </div>
     </article>
   );
