@@ -12,7 +12,7 @@ export interface NewInvestment {
 
 export interface InvestmentRepository {
   create(input: NewInvestment): Promise<Investment>;
-  setSubmitted(id: string, txHash: string): Promise<void>;
+  setSubmitted(id: string, txHash: string, chainId: number): Promise<void>;
   setStatus(id: string, status: InvestmentStatus, error?: string): Promise<void>;
   spentSince(agentId: string, since: Date): Promise<number>;
 }

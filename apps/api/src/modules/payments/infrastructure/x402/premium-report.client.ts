@@ -24,8 +24,8 @@ export class PremiumReportClient implements PaidDataClient {
       this.log.warn(`fetching ${url} without payment (x402 disabled or agent has no Hedera account)`);
       return { data: await getJson<DueDiligenceReport>(url), payment: null };
     }
-    const doFetch = this.paidFetch.forPayer(payer, 1);
-    const result = await this.paidFetch.fetchJson<DueDiligenceReport>(doFetch, url);
+    const paid = this.paidFetch.forPayer(payer, 1);
+    const result = await this.paidFetch.fetchJson<DueDiligenceReport>(paid, url);
     if (result.payment?.txId) this.log.log(`paid for report ${roundId}: tx ${result.payment.txId}`);
     return result;
   }

@@ -37,10 +37,10 @@ export class SubmitInvestmentUseCase {
     try {
       const rail = this.rails.resolve(cmd.wallet.kind);
       const tx = await rail.invest({ wallet: cmd.wallet, onchainRoundId: cmd.onchainRoundId, amountUsdc: cmd.amountUsdc });
-      await this.investments.setSubmitted(investment.id, tx.txHash);
+      await this.investments.setSubmitted(investment.id, tx.txHash, tx.chainId);
       const ok = await rail.waitForConfirmation(tx.txHash);
       await this.investments.setStatus(investment.id, ok ? 'CONFIRMED' : 'FAILED', ok ? undefined : 'tx reverted');
-      return { ...investment, txHash: tx.txHash, chainId: tx.chainId, status: ok ? 'CONFIRMED' : 'FAILED' };
+      return { ...investment, txHash: tx.txHash, chainId: tx.chainId, status: ok ? 'CONFIRMED' : 'FAILED', error: ok ? null : 'tx reverted' };
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       this.log.error(`settlement failed for decision ${cmd.decisionId}: ${message}`);
@@ -54,6 +54,6 @@ export class SubmitInvestmentUseCase {
 
   private async fail(investment: Investment, error: string): Promise<Investment> {
     await this.investments.setStatus(investment.id, 'FAILED', error);
-    return { ...investment, status: 'FAILED' };
+    return { ...investment, status: 'FAILED', error };
   }
 }

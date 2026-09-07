@@ -25,6 +25,7 @@ export const toInvestment = (i: DbInvestment): Investment => ({
   chainId: i.chainId,
   txHash: i.txHash,
   status: i.status,
+  error: i.error,
   createdAt: i.createdAt.toISOString(),
 });
 

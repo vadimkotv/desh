@@ -13,8 +13,8 @@ export class PrismaInvestmentRepository implements InvestmentRepository {
     return toInvestment(await this.prisma.investment.create({ data: input }));
   }
 
-  async setSubmitted(id: string, txHash: string): Promise<void> {
-    await this.prisma.investment.update({ where: { id }, data: { txHash } });
+  async setSubmitted(id: string, txHash: string, chainId: number): Promise<void> {
+    await this.prisma.investment.update({ where: { id }, data: { txHash, chainId } });
   }
 
   async setStatus(id: string, status: InvestmentStatus, error?: string): Promise<void> {
