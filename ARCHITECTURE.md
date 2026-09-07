@@ -98,7 +98,12 @@ modules/<name>/
 | GET | `/agents`, `/agents/:id` | |
 | POST | `/agents/:id/identity` | register ERC-8004 identity |
 | POST | `/agents/:id/run` | execute pipeline over open rounds |
+| POST | `/agents/:id/runs` | start an async run → `{runId}` |
+| POST | `/rounds/:id/swarm` | every agent evaluates one round concurrently → `{runs}` |
+| GET | `/runs`, `/runs/:runId/events` (SSE), `/events` (SSE) | run history, per-run stream, global firehose of `RunEvent`s |
 | GET | `/agents/:id/decisions`, `/decisions` | decision feed |
+| GET | `/due-diligence/rounds/:id/history` | score history for sparklines |
+| GET | `/stats` | KPI strip |
 | GET | `/payments/receipts` | x402 receipts |
 | GET | `/audit` | audit entries with HCS sequence numbers |
 | GET | `/health` | |

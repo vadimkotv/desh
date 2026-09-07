@@ -39,7 +39,7 @@ AGENT_MASTER_MNEMONIC="test test test test test test test test test test test ju
 DEMO_SIGNALS=true               # deterministic fixture signals instead of The Graph
 ```
 
-Then: open http://localhost:3000 → *Agents* → create an agent → *Run agent*. Rounds have no
+Then: open http://localhost:3000 → press **Run swarm** on a round: three seeded agents with different mandates buy the report, decide and settle live (SSE). Rounds have no
 on-chain escrow yet, so settlements are recorded as `FAILED: round has no on-chain escrow id` —
 that is the honest degraded mode. Add keys and the same code path goes live:
 
@@ -72,7 +72,7 @@ pnpm --filter @agentipo/api dev:facilitator-stub     # → X402_FACILITATOR_URL=
 | Path | What |
 | --- | --- |
 | `apps/api` | NestJS 11 platform. Ports & adapters per module, every file ≤ 100 lines. |
-| `apps/web` | Next.js 16 dashboard (rounds, reports, agents, decisions, audit). |
+| `apps/web` | Next.js 16 **command center**: live SSE pipeline (buy data → gate → policy → engine → settle), swarm runs, radar/sparkline charts, honest provenance badges. Screens in `docs/screens/`. |
 | `packages/shared` | zod contracts + chain constants shared by API and web. |
 | `packages/contracts` | Foundry: `RoundEscrow.sol` (target-or-refund, milestone release) + 35 tests. |
 | `ARCHITECTURE.md` | Module map, agent pipeline, REST surface, track mapping. |
