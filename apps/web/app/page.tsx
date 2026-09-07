@@ -1,7 +1,9 @@
 import type { DueDiligencePreview } from '@agentipo/shared';
-import { Hero } from '@/components/home/hero';
-import { StatsRow } from '@/components/home/stats-row';
-import { RoundGrid } from '@/components/rounds/round-grid';
+import { AgentRail } from '@/components/command/agent-rail';
+import { KpiStrip } from '@/components/command/kpi-strip';
+import { OpenRounds } from '@/components/command/open-rounds';
+import { StatusBar } from '@/components/command/status-bar';
+import { LivePipeline } from '@/components/live/live-pipeline';
 import { ApiOffline } from '@/components/ui/empty-state';
 import { api, listOrEmpty } from '@/lib/api';
 import type { RoundDetail } from '@/lib/types';
@@ -18,38 +20,37 @@ async function loadPreviews(rounds: RoundDetail[]): Promise<Map<string, DueDilig
   return new Map(entries);
 }
 
-export default async function HomePage() {
-  const [roundsResult, agentsResult, decisionsResult] = await Promise.all([
+export default async function CommandCenterPage() {
+  const [healthResult, statsResult, roundsResult, agentsResult, receiptsResult, runsResult] = await Promise.all([
+    api.health(),
+    api.stats(),
     api.rounds(),
     api.agents(),
-    api.decisions(),
+    api.receipts(),
+    api.runs(8),
   ]);
   const rounds = listOrEmpty(roundsResult);
   const agents = listOrEmpty(agentsResult);
+  const receipts = listOrEmpty(receiptsResult);
   const openRounds = rounds.items.filter((round) => round.status === 'OPEN');
   const previews = await loadPreviews(openRounds);
-  const totalRaised = rounds.items.reduce((sum, round) => sum + round.raisedUsdc, 0);
+  const investments = rounds.items.flatMap((round) => round.investments ?? []);
 
   return (
-    <>
-      <Hero />
+    <div className="flex flex-col gap-4">
+      <StatusBar health={healthResult.ok ? healthResult.data : null} />
       {rounds.offline ? (
         <ApiOffline />
       ) : (
         <>
-          <StatsRow
-            openRounds={openRounds.length}
-            totalRaisedUsdc={totalRaised}
-            agents={agents.items.length}
-            decisions={decisionsResult.ok ? decisionsResult.data.length : null}
-          />
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="font-mono text-[11px] uppercase tracking-[0.25em] text-muted">Open rounds</h2>
-            <span className="font-mono text-[11px] text-muted">{openRounds.length} live</span>
+          <KpiStrip stats={statsResult.ok ? statsResult.data : null} investments={investments} receipts={receipts.items} />
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,3fr)_minmax(0,5fr)_minmax(0,3fr)]">
+            <OpenRounds rounds={openRounds} previews={previews} />
+            <LivePipeline agents={agents.items} seed={listOrEmpty(runsResult).items} />
+            <AgentRail agents={agents.items} />
           </div>
-          <RoundGrid rounds={openRounds} previews={previews} />
         </>
       )}
-    </>
+    </div>
   );
 }

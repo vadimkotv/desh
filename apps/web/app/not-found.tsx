@@ -7,7 +7,7 @@ export default function NotFound() {
       <EmptyState title="404 · nothing here" hint="The resource you asked for does not exist." />
       <p className="mt-4 text-center">
         <Link href="/" className="font-mono text-xs text-accent hover:underline">
-          ← back to rounds
+          ← back to the command center
         </Link>
       </p>
     </div>

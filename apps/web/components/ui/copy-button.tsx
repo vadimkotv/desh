@@ -3,10 +3,10 @@
 import { useState } from 'react';
 import { shortAddress } from '@/lib/format';
 
-type CopyButtonProps = { value: string; label?: string; chars?: number };
+type CopyButtonProps = { value: string; label?: string; chars?: number; className?: string };
 
 // Shows a shortened address and copies the full value on click.
-export function CopyButton({ value, label, chars = 4 }: CopyButtonProps) {
+export function CopyButton({ value, label, chars = 4, className = '' }: CopyButtonProps) {
   const [copied, setCopied] = useState(false);
 
   async function copy() {
@@ -24,10 +24,10 @@ export function CopyButton({ value, label, chars = 4 }: CopyButtonProps) {
       type="button"
       onClick={copy}
       title={value}
-      className="inline-flex items-center gap-1.5 rounded border border-line bg-raised px-2 py-0.5 font-mono text-xs text-fg transition hover:border-accent/50 hover:text-accent"
+      className={`inline-flex items-center gap-1.5 rounded-sm border border-line bg-raised px-1.5 py-[1px] font-mono text-[11px] text-fg transition-colors hover:border-accent/50 hover:text-accent ${className}`}
     >
       <span>{label ?? shortAddress(value, chars)}</span>
-      <span className={`text-[10px] ${copied ? 'text-accent' : 'text-muted'}`}>{copied ? '✓' : '⧉'}</span>
+      <span className={`text-[10px] ${copied ? 'text-accent' : 'text-dim'}`}>{copied ? '✓' : '⧉'}</span>
     </button>
   );
 }

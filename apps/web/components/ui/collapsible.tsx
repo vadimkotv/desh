@@ -16,12 +16,12 @@ export function Collapsible({ label, children, defaultOpen = false }: Collapsibl
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="inline-flex items-center gap-1 font-mono text-[11px] uppercase tracking-wider text-muted hover:text-fg"
+        className="inline-flex items-center gap-1 font-mono text-[10.5px] uppercase tracking-wider text-muted transition-colors hover:text-fg"
       >
-        <span className="inline-block w-3 text-accent">{open ? '−' : '+'}</span>
+        <span className={`inline-block w-3 text-accent transition-transform ${open ? 'rotate-90' : ''}`}>›</span>
         {label}
       </button>
-      {open && <div className="mt-2">{children}</div>}
+      {open && <div className="mt-2 fade-in">{children}</div>}
     </div>
   );
 }

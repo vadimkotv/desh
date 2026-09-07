@@ -4,9 +4,23 @@ import type {
   CreateAgent,
   Decision,
   DueDiligencePreview,
+  DueDiligenceReport,
+  RunEvent,
   Signal,
+  Stats,
 } from '@agentipo/shared';
-import type { ApiResult, RoundDetail } from './types';
+import type {
+  ApiResult,
+  DdHistoryPoint,
+  Health,
+  OnchainRound,
+  Pricing,
+  Receipt,
+  RoundDetail,
+  RunHandle,
+  SwarmResponse,
+  WalletBalance,
+} from './api-types';
 
 // Single fetch call site for the dashboard. Works in server components and
 // client components alike; every helper returns an ApiResult, never throws.
@@ -48,21 +62,37 @@ const post = <T>(path: string, body?: unknown) =>
   request<T>(path, { method: 'POST', body: body === undefined ? undefined : JSON.stringify(body) });
 
 export const api = {
+  health: () => get<Health>('/health'),
+  stats: () => get<Stats>('/stats'),
   rounds: () => get<RoundDetail[]>('/rounds'),
   round: (id: string) => get<RoundDetail>(`/rounds/${id}`),
   ddPreview: (roundId: string) => get<DueDiligencePreview>(`/due-diligence/rounds/${roundId}`),
+  ddHistory: (roundId: string) => get<DdHistoryPoint[]>(`/due-diligence/rounds/${roundId}/history`),
   signals: (startupId: string) => get<Signal[]>(`/data-room/startups/${startupId}/signals`),
   agents: () => get<Agent[]>('/agents'),
   agent: (id: string) => get<Agent>(`/agents/${id}`),
   agentDecisions: (id: string) => get<Decision[]>(`/agents/${id}/decisions`),
   decisions: () => get<Decision[]>('/decisions'),
   audit: () => get<AuditEntry[]>('/audit'),
+  runs: (limit = 8) => get<RunEvent[][]>(`/runs?limit=${limit}`),
+  receipts: () => get<Receipt[]>('/payments/receipts'),
+  pricing: () => get<Pricing>('/payments/pricing'),
+  walletUsdc: (address: string) => get<WalletBalance>(`/settlement/wallets/${address}/usdc`),
+  onchainRound: (onchainId: number) => get<OnchainRound>(`/settlement/rounds/${onchainId}`),
   createAgent: (input: CreateAgent) => post<Agent>('/agents', input),
-  runAgent: (id: string) => post<Decision[]>(`/agents/${id}/run`),
-  refreshDataRoom: (startupId: string) =>
-    post<unknown>(`/data-room/startups/${startupId}/refresh`),
+  registerIdentity: (id: string) => post<Agent>(`/agents/${id}/identity`),
+  startRun: (agentId: string, roundId?: string) =>
+    post<RunHandle>(`/agents/${agentId}/runs${roundId ? `?roundId=${roundId}` : ''}`),
+  swarm: (roundId: string) => post<SwarmResponse>(`/rounds/${roundId}/swarm`),
+  refreshDataRoom: (startupId: string) => post<unknown>(`/data-room/startups/${startupId}/refresh`),
   generateReport: (roundId: string) =>
-    post<DueDiligencePreview>(`/due-diligence/rounds/${roundId}/generate`),
+    post<DueDiligenceReport>(`/due-diligence/rounds/${roundId}/generate`),
+};
+
+// SSE endpoints are consumed by EventSource, not fetch; the URLs still come from here.
+export const sseUrl = {
+  firehose: () => `${API_URL}/events`,
+  run: (runId: string) => `${API_URL}/runs/${runId}/events`,
 };
 
 // Collapses a list result into data-or-empty while remembering whether the API

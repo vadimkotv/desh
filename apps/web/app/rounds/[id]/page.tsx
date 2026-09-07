@@ -1,12 +1,11 @@
 import { notFound } from 'next/navigation';
-import { DdPreview } from '@/components/rounds/dd-preview';
+import { DdSection } from '@/components/rounds/dd-section';
 import { InvestmentsList } from '@/components/rounds/investments-list';
-import { Milestones } from '@/components/rounds/milestones';
 import { OnchainPanel } from '@/components/rounds/onchain-panel';
-import { PremiumCallout } from '@/components/rounds/premium-callout';
-import { RoundActions } from '@/components/rounds/round-actions';
 import { RoundHeader } from '@/components/rounds/round-header';
 import { SignalsTable } from '@/components/rounds/signals-table';
+import { SwarmPanel } from '@/components/rounds/swarm-panel';
+import { X402Callout } from '@/components/rounds/x402-callout';
 import { ApiOffline } from '@/components/ui/empty-state';
 import { api, listOrEmpty } from '@/lib/api';
 import { isOffline } from '@/lib/types';
@@ -22,30 +21,32 @@ export default async function RoundPage({ params }: RoundPageProps) {
   if (!roundResult.ok) notFound();
   const round = roundResult.data;
 
-  const [previewResult, signalsResult] = await Promise.all([
+  const [previewResult, historyResult, signalsResult, agentsResult, pricingResult, onchainResult] = await Promise.all([
     api.ddPreview(round.id),
+    api.ddHistory(round.id),
     api.signals(round.startupId),
+    api.agents(),
+    api.pricing(),
+    round.onchainRoundId !== null ? api.onchainRound(round.onchainRoundId) : Promise.resolve(null),
   ]);
   const preview = previewResult.ok ? previewResult.data : null;
+  const history = listOrEmpty(historyResult).items;
   const signals = listOrEmpty(signalsResult).items;
+  const agents = listOrEmpty(agentsResult).items;
 
   return (
     <div className="flex flex-col gap-4">
       <RoundHeader round={round} />
-      <div className="flex flex-col gap-3 rounded-lg border border-line bg-panel/90 p-4 sm:flex-row sm:items-center sm:justify-between">
-        <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted">founder actions</p>
-        <RoundActions roundId={round.id} startupId={round.startupId} />
-      </div>
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="flex flex-col gap-4 lg:col-span-2">
-          <DdPreview preview={preview} />
+          <DdSection roundId={round.id} startupId={round.startupId} preview={preview} history={history} />
+          <SwarmPanel roundId={round.id} agents={agents} />
           <SignalsTable signals={signals} />
-          <InvestmentsList investments={round.investments ?? []} />
+          <InvestmentsList investments={round.investments ?? []} agents={agents} />
         </div>
         <div className="flex flex-col gap-4">
-          <OnchainPanel round={round} />
-          <Milestones milestones={round.milestones} />
-          <PremiumCallout roundId={round.id} />
+          <OnchainPanel round={round} onchain={onchainResult?.ok ? onchainResult.data : null} />
+          <X402Callout roundId={round.id} pricing={pricingResult.ok ? pricingResult.data : null} />
         </div>
       </div>
     </div>

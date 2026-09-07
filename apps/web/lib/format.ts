@@ -6,6 +6,13 @@ const compact = new Intl.NumberFormat('en-US', { notation: 'compact', maximumFra
 export const usdc = (amount: number): string => `${number.format(amount)} USDC`;
 export const usdcCompact = (amount: number): string => `${compact.format(amount)} USDC`;
 export const num = (value: number): string => number.format(value);
+export const compactNum = (value: number): string => compact.format(value);
+
+// x402 receipts carry atomic USDC (6 decimals) as a string.
+export const atomicUsdc = (atomic: string | number): number => {
+  const value = Number(atomic);
+  return Number.isFinite(value) ? value / 1_000_000 : 0;
+};
 
 export function shortAddress(address: string, chars = 4): string {
   if (address.length <= chars * 2 + 2) return address;
@@ -20,6 +27,12 @@ export function formatDate(iso: string): string {
   return `${date.toISOString().slice(0, 16).replace('T', ' ')} UTC`;
 }
 
+export function formatTime(iso: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return iso;
+  return date.toISOString().slice(11, 23);
+}
+
 export function countdown(deadline: string, now = Date.now()): { label: string; expired: boolean } {
   const ms = new Date(deadline).getTime() - now;
   if (Number.isNaN(ms)) return { label: 'unknown deadline', expired: false };
@@ -27,9 +40,9 @@ export function countdown(deadline: string, now = Date.now()): { label: string; 
   const minutes = Math.floor(ms / 60_000);
   const days = Math.floor(minutes / 1_440);
   const hours = Math.floor((minutes % 1_440) / 60);
-  if (days > 0) return { label: `${days}d ${hours}h left`, expired: false };
-  if (hours > 0) return { label: `${hours}h ${minutes % 60}m left`, expired: false };
-  return { label: `${minutes}m left`, expired: false };
+  if (days > 0) return { label: `${days}d ${hours}h`, expired: false };
+  if (hours > 0) return { label: `${hours}h ${minutes % 60}m`, expired: false };
+  return { label: `${minutes}m`, expired: false };
 }
 
 export const percent = (part: number, whole: number): number =>

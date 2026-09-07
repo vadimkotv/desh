@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type { ApiResult } from '@/lib/types';
+import { Button, type ButtonSize, type ButtonVariant } from './button';
 
 export type ActionStatus = { tone: 'ok' | 'error' | 'pending'; text: string } | null;
 
@@ -11,18 +12,14 @@ type ActionButtonProps<T> = {
   run: () => Promise<ApiResult<T>>;
   onSuccess?: (data: T) => void | Promise<void>;
   successText?: (data: T) => string;
-  variant?: 'primary' | 'ghost';
-};
-
-const variants = {
-  primary: 'border-accent/60 bg-accent/10 text-accent hover:bg-accent/20',
-  ghost: 'border-line bg-raised text-fg hover:border-accent/50 hover:text-accent',
+  variant?: ButtonVariant;
+  size?: ButtonSize;
 };
 
 // A POST trigger with inline "toast": status text lives next to the button
 // so it works without any global state or portals.
 export function ActionButton<T>(props: ActionButtonProps<T>) {
-  const { label, pendingLabel = 'Working…', run, onSuccess, successText, variant = 'ghost' } = props;
+  const { label, pendingLabel = 'Working…', run, onSuccess, successText, variant = 'ghost', size } = props;
   const [status, setStatus] = useState<ActionStatus>(null);
   const busy = status?.tone === 'pending';
 
@@ -39,14 +36,9 @@ export function ActionButton<T>(props: ActionButtonProps<T>) {
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <button
-        type="button"
-        onClick={handle}
-        disabled={busy}
-        className={`rounded border px-3 py-1.5 font-mono text-xs transition disabled:cursor-wait disabled:opacity-60 ${variants[variant]}`}
-      >
+      <Button onClick={handle} busy={busy} variant={variant} size={size}>
         {busy ? pendingLabel : label}
-      </button>
+      </Button>
       {status && <InlineStatus status={status} />}
     </div>
   );

@@ -1,15 +1,12 @@
 import { API_URL } from '@/lib/api';
 
-type EmptyStateProps = {
-  title: string;
-  hint?: string;
-};
+type EmptyStateProps = { title: string; hint?: string; className?: string };
 
-export function EmptyState({ title, hint }: EmptyStateProps) {
+export function EmptyState({ title, hint, className = '' }: EmptyStateProps) {
   return (
-    <div className="rounded-lg border border-dashed border-line px-6 py-10 text-center">
-      <p className="font-mono text-sm text-fg">{title}</p>
-      {hint && <p className="mt-1 text-xs text-muted">{hint}</p>}
+    <div className={`rounded-lg border border-dashed border-line-strong px-6 py-8 text-center ${className}`}>
+      <p className="font-mono text-xs text-fg">{title}</p>
+      {hint && <p className="mt-1 text-[11px] text-muted">{hint}</p>}
     </div>
   );
 }

@@ -1,16 +1,16 @@
 import type { ReactNode } from 'react';
 
 const inputClass =
-  'w-full rounded border border-line bg-ink px-2.5 py-1.5 font-mono text-xs text-fg outline-none transition placeholder:text-muted/60 focus:border-accent/60';
+  'w-full rounded-md border border-line bg-ink px-2.5 py-1.5 font-mono text-xs text-fg outline-none transition-colors placeholder:text-dim focus:border-agent/60 focus:ring-1 focus:ring-agent/30';
 
 type FieldProps = { label: string; hint?: string; children: ReactNode; className?: string };
 
 export function Field({ label, hint, children, className = '' }: FieldProps) {
   return (
     <label className={`flex flex-col gap-1 ${className}`}>
-      <span className="font-mono text-[10px] uppercase tracking-wider text-muted">
+      <span className="eyebrow">
         {label}
-        {hint && <span className="ml-1 normal-case tracking-normal text-muted/70">· {hint}</span>}
+        {hint && <span className="ml-1 normal-case tracking-normal text-dim">· {hint}</span>}
       </span>
       {children}
     </label>
@@ -28,15 +28,7 @@ type InputProps = {
 
 export function Input({ name, placeholder, type = 'text', defaultValue, step, required }: InputProps) {
   return (
-    <input
-      name={name}
-      type={type}
-      placeholder={placeholder}
-      defaultValue={defaultValue}
-      step={step}
-      required={required}
-      className={inputClass}
-    />
+    <input name={name} type={type} placeholder={placeholder} defaultValue={defaultValue} step={step} required={required} className={inputClass} />
   );
 }
 

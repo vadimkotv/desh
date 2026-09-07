@@ -2,16 +2,18 @@
 
 import { WalletKind } from '@agentipo/shared';
 import { InlineStatus } from '@/components/ui/action-button';
+import { Button } from '@/components/ui/button';
 import { Panel } from '@/components/ui/panel';
 import { Field, Input, Select } from './form-field';
 import { MandateFields } from './mandate-fields';
 import { useCreateAgent } from './use-create-agent';
 
+// The only place a human expresses intent: a mandate, never a buy order.
 export function CreateAgentForm() {
   const { status, busy, onSubmit } = useCreateAgent();
 
   return (
-    <Panel eyebrow="new investor" title="Create agent">
+    <Panel eyebrow="new investor · human writes the mandate" title="Create agent" tone="agent">
       <form onSubmit={onSubmit} className="grid gap-3 sm:grid-cols-2">
         <Field label="name">
           <Input name="name" placeholder="Atlas Seed Fund" required />
@@ -24,13 +26,9 @@ export function CreateAgentForm() {
         </Field>
         <MandateFields />
         <div className="flex flex-wrap items-center gap-3 sm:col-span-2">
-          <button
-            type="submit"
-            disabled={busy}
-            className="rounded border border-accent/60 bg-accent/10 px-3 py-1.5 font-mono text-xs text-accent transition hover:bg-accent/20 disabled:cursor-wait disabled:opacity-60"
-          >
-            {busy ? 'Creating…' : 'Create agent'}
-          </button>
+          <Button type="submit" variant="agent" busy={busy}>
+            {busy ? 'Provisioning…' : '+ Create agent'}
+          </Button>
           {status && <InlineStatus status={status} />}
         </div>
       </form>

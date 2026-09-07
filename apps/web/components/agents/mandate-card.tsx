@@ -1,27 +1,21 @@
 import type { Mandate } from '@agentipo/shared';
 import { Badge } from '@/components/ui/badge';
-import { KeyValue, KeyValueList } from '@/components/ui/key-value';
 import { Panel } from '@/components/ui/panel';
-import { bpsToPercent, usdc } from '@/lib/format';
+import { MandateBars } from './mandate-bars';
+
+const riskTone = { conservative: 'info', balanced: 'accent', aggressive: 'amber' } as const;
 
 export function MandateCard({ mandate }: { mandate: Mandate }) {
   return (
-    <Panel eyebrow="human intent" title="Mandate">
-      <p className="text-sm leading-relaxed text-fg">{mandate.thesis}</p>
+    <Panel eyebrow="human intent · the only input" title="Mandate" tone="agent" action={<Badge tone={riskTone[mandate.riskTolerance]}>{mandate.riskTolerance}</Badge>}>
+      <blockquote className="border-l-2 border-agent/50 pl-3 text-[13px] italic leading-relaxed text-fg">“{mandate.thesis}”</blockquote>
       <div className="mt-3 flex flex-wrap gap-1">
         {mandate.sectors.map((sector) => (
           <Badge key={sector} tone="info">{sector}</Badge>
         ))}
       </div>
       <div className="mt-4">
-        <KeyValueList>
-          <KeyValue label="min score">{mandate.minScore} / 100</KeyValue>
-          <KeyValue label="max ticket">{usdc(mandate.maxTicketUsdc)}</KeyValue>
-          <KeyValue label="max round share">{bpsToPercent(mandate.maxPerRoundShareBps)}</KeyValue>
-          <KeyValue label="daily budget">{usdc(mandate.dailyBudgetUsdc)}</KeyValue>
-          <KeyValue label="data spend cap">{usdc(mandate.maxDataSpendUsdc)}</KeyValue>
-          <KeyValue label="risk">{mandate.riskTolerance}</KeyValue>
-        </KeyValueList>
+        <MandateBars mandate={mandate} compact />
       </div>
     </Panel>
   );
