@@ -1,0 +1,33 @@
+{
+  "name": "agentipo",
+  "private": true,
+  "version": "0.1.0",
+  "description": "AgentIPO \u2014 open-data startup fundraising where AI agents, not humans, make the investment decisions",
+  "packageManager": "pnpm@10.28.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "pnpm -r --parallel --filter ./apps/* dev",
+    "dev:api": "pnpm --filter @agentipo/api dev",
+    "dev:web": "pnpm --filter @agentipo/web dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "db:up": "docker compose up -d postgres",
+    "db:migrate": "pnpm --filter @agentipo/api prisma:deploy",
+    "db:seed": "pnpm --filter @agentipo/api prisma:seed",
+    "contracts:test": "pnpm --filter @agentipo/contracts test",
+    "check:file-size": "node scripts/check-file-size.mjs",
+    "setup": "pnpm install && pnpm --filter @agentipo/shared build && pnpm --filter @agentipo/api prisma:generate",
+    "db:migrate:dev": "pnpm --filter @agentipo/api prisma:migrate"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.0",
+    "eslint": "^9.39.0",
+    "prettier": "^3.6.2",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.69.0"
+  }
+}
