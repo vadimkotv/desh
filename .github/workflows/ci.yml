@@ -1,0 +1,38 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  node:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @agentipo/shared build
+      - run: pnpm --filter @agentipo/api prisma:generate
+        env:
+          DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm --filter @agentipo/api test
+      - run: pnpm check:file-size
+
+  contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: foundry-rs/foundry-toolchain@v1
+      - run: |
+          cd packages/contracts
+          git clone --depth 1 --branch v5.1.0 https://github.com/OpenZeppelin/openzeppelin-contracts lib/openzeppelin-contracts
+          git clone --depth 1 --branch v1.9.6 https://github.com/foundry-rs/forge-std lib/forge-std
+          forge test -vv
