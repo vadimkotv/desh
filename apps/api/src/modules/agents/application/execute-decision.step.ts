@@ -8,6 +8,7 @@ import type { AgentRecord } from '../domain/agent.repository';
 import { DECISION_REPOSITORY, type DecisionRepository } from '../domain/decision.repository';
 import type { AcquiredReport } from './acquire-report.step';
 import type { RoundVerdict } from './decide-round.step';
+import { NOOP_REPORTER, type RunReporter } from '../domain/run-reporter';
 
 // Step 3: persist the decision, then (for INVEST) settle USDC into the Arc escrow and
 // mirror every state change to the audit log / HCS.
@@ -20,7 +21,7 @@ export class ExecuteDecisionStep {
     private readonly rounds: RoundQueries,
   ) {}
 
-  async run(agent: AgentRecord, round: RoundDetail, acquired: AcquiredReport, verdict: RoundVerdict): Promise<Decision> {
+  async run(agent: AgentRecord, round: RoundDetail, acquired: AcquiredReport, verdict: RoundVerdict, reporter: RunReporter = NOOP_REPORTER): Promise<Decision> {
     const { engine, ...rest } = verdict;
     const decision = await this.decisions.create({
       ...rest,
@@ -38,6 +39,7 @@ export class ExecuteDecisionStep {
     if (decision.action !== 'INVEST' || !agent.walletAddress) return decision;
 
     await this.audit.record('INVESTMENT_SUBMITTED', { decisionId: decision.id, amountUsdc: decision.amountUsdc }, agent.id);
+    reporter.emit('settlement.submitted', { decisionId: decision.id, amountUsdc: decision.amountUsdc, wallet: agent.walletAddress, kind: agent.walletKind });
     const investment = await this.investments.execute({
       decisionId: decision.id,
       agentId: agent.id,
@@ -47,9 +49,10 @@ export class ExecuteDecisionStep {
       wallet: { kind: agent.walletKind, address: agent.walletAddress, keyIndex: agent.keyIndex, circleWalletId: agent.circleWalletId },
     });
     if (investment.status === 'CONFIRMED') await this.rounds.recordRaised(round.id, investment.amountUsdc);
+    reporter.emit(investment.status === 'CONFIRMED' ? 'settlement.confirmed' : 'settlement.failed', { investmentId: investment.id, txHash: investment.txHash, chainId: investment.chainId, amountUsdc: investment.amountUsdc, error: investment.error });
     await this.audit.record(
       investment.status === 'CONFIRMED' ? 'INVESTMENT_CONFIRMED' : 'INVESTMENT_FAILED',
-      { decisionId: decision.id, investmentId: investment.id, txHash: investment.txHash, chainId: investment.chainId },
+      { decisionId: decision.id, investmentId: investment.id, txHash: investment.txHash, chainId: investment.chainId, error: investment.error },
       agent.id,
     );
     return { ...decision, investment };

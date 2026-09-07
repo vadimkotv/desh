@@ -7,6 +7,7 @@ import { WalletBalanceQuery } from '../../settlement/application/wallet-balance.
 import type { RoundDetail } from '../../startups/domain/round.repository';
 import type { AgentRecord } from '../domain/agent.repository';
 import { mandateGate } from '../domain/mandate.gate';
+import { NOOP_REPORTER, type RunReporter } from '../domain/run-reporter';
 import { DecisionEngineResolver } from '../infrastructure/engines/decision-engine.resolver';
 
 export interface RoundVerdict extends DecisionVerdict {
@@ -26,8 +27,9 @@ export class DecideRoundStep {
     private readonly agent0: Agent0Client,
   ) {}
 
-  async run(agent: AgentRecord, round: RoundDetail, report: DueDiligenceReport): Promise<RoundVerdict> {
+  async run(agent: AgentRecord, round: RoundDetail, report: DueDiligenceReport, reporter: RunReporter = NOOP_REPORTER): Promise<RoundVerdict> {
     const gate = mandateGate(agent.mandate, report);
+    reporter.emit(gate.pass ? 'gate.passed' : 'gate.failed', { reason: gate.reason, score: report.score, minScore: agent.mandate.minScore });
     if (!gate.pass) {
       return { engine: 'mandate-gate', action: 'PASS', amountUsdc: 0, confidence: 1, reasoning: gate.reason, keyRisks: [] };
     }
@@ -39,17 +41,21 @@ export class DecideRoundStep {
       spentTodayUsdc: await this.investments.spentToday(agent.id),
       walletBalanceUsdc: await this.balanceOf(agent),
     });
+    reporter.emit('policy.evaluated', { allowed: spend.allowed, ceilingUsdc: spend.amountUsdc, reason: spend.reason });
     if (!spend.allowed) {
       return { engine: 'spending-policy', action: 'WATCH', amountUsdc: 0, confidence: 1, reasoning: spend.reason, keyRisks: [] };
     }
 
     const engine = this.engines.resolve();
+    reporter.emit('engine.deciding', { engine: engine.name, maxAmountUsdc: spend.amountUsdc });
     const verdict = await engine.decide({
       mandate: agent.mandate, round, report, maxAmountUsdc: spend.amountUsdc, selfReputation: await this.reputationOf(agent),
     });
     const amountUsdc = verdict.action === 'INVEST' ? Math.min(verdict.amountUsdc, spend.amountUsdc) : 0;
     const action = amountUsdc < round.minTicketUsdc && verdict.action === 'INVEST' ? 'WATCH' : verdict.action;
-    return { ...verdict, action, amountUsdc: action === 'INVEST' ? amountUsdc : 0, engine: engine.name };
+    const bounded = { ...verdict, action, amountUsdc: action === 'INVEST' ? amountUsdc : 0, engine: engine.name };
+    reporter.emit('engine.decided', { action, amountUsdc: bounded.amountUsdc, confidence: verdict.confidence, engine: engine.name, reasoning: verdict.reasoning, keyRisks: verdict.keyRisks });
+    return bounded;
   }
 
   private async balanceOf(agent: AgentRecord): Promise<number | undefined> {

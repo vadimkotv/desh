@@ -11,6 +11,7 @@ import { DecideRoundStep } from './application/decide-round.step';
 import { ExecuteDecisionStep } from './application/execute-decision.step';
 import { RegisterIdentityUseCase } from './application/register-identity.usecase';
 import { RunAgentUseCase } from './application/run-agent.usecase';
+import { RunEventBus } from './application/run-event.bus';
 import { AGENT_REPOSITORY } from './domain/agent.repository';
 import { DECISION_ENGINES } from './domain/decision-engine.port';
 import { DECISION_REPOSITORY } from './domain/decision.repository';
@@ -24,10 +25,11 @@ import { PrismaAgentRepository } from './infrastructure/prisma-agent.repository'
 import { PrismaDecisionRepository } from './infrastructure/prisma-decision.repository';
 import { AgentsController } from './presentation/agents.controller';
 import { DecisionsController } from './presentation/decisions.controller';
+import { RunsController } from './presentation/runs.controller';
 
 @Module({
   imports: [StartupsModule, DataRoomModule, PaymentsModule, SettlementModule, AuditModule],
-  controllers: [AgentsController, DecisionsController],
+  controllers: [AgentsController, DecisionsController, RunsController],
   providers: [
     LlmDecisionEngine,
     RulesDecisionEngine,
@@ -36,6 +38,7 @@ import { DecisionsController } from './presentation/decisions.controller';
     AcquireReportStep,
     DecideRoundStep,
     ExecuteDecisionStep,
+    RunEventBus,
     RunAgentUseCase,
     CreateAgentUseCase,
     RegisterIdentityUseCase,

@@ -5,6 +5,7 @@ import { PAID_DATA_CLIENT, type HederaPayer, type PaidDataClient } from '../../p
 import { PremiumReportClient } from '../../payments/infrastructure/x402/premium-report.client';
 import { AgentKeyDerivation } from '../../settlement/infrastructure/keys/agent-key.derivation';
 import type { AgentRecord } from '../domain/agent.repository';
+import { NOOP_REPORTER, type RunReporter } from '../domain/run-reporter';
 
 export interface AcquiredReport {
   report: DueDiligenceReport;
@@ -24,10 +25,12 @@ export class AcquireReportStep {
     private readonly keys: AgentKeyDerivation,
   ) {}
 
-  async run(agent: AgentRecord, roundId: string): Promise<AcquiredReport> {
+  async run(agent: AgentRecord, roundId: string, reporter: RunReporter = NOOP_REPORTER): Promise<AcquiredReport> {
     const payer = this.payerFor(agent);
+    reporter.emit('data.purchasing', { payer: payer?.accountId ?? null, resource: `due-diligence/rounds/${roundId}/premium` });
     const { data, payment } = await this.paidData.fetchPremiumReport(roundId, payer);
     const paymentTxId = payment?.txId ?? null;
+    reporter.emit('data.purchased', { reportId: data.id, score: data.score, dataCoverage: data.dataCoverage, txId: paymentTxId, ...(payment ?? {}) });
     if (paymentTxId) {
       await this.receipts.attachAgent(paymentTxId, agent.id);
       await this.audit.record('DATA_PURCHASED', { roundId, reportId: data.id, ...payment }, agent.id);
