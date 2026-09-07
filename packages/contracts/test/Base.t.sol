@@ -13,6 +13,8 @@ abstract contract BaseTest is Test {
     uint256 internal constant USDC = 1e6;
     uint256 internal constant TARGET = 100_000 * USDC;
     uint64 internal constant DURATION = 7 days;
+    /// @dev Default investor return cap: 1.5x of the amount raised.
+    uint16 internal constant CAP_BPS = 15_000;
 
     MockUSDC internal usdc;
     RoundEscrow internal escrow;
@@ -54,10 +56,18 @@ abstract contract BaseTest is Test {
         return _createRound(TARGET, _milestones());
     }
 
-    /// @dev Create a round with a custom target and schedule as the platform.
+    /// @dev Create a round with a custom target and schedule (default cap) as the platform.
     function _createRound(uint256 target, uint16[] memory bps) internal returns (uint256) {
+        return _createRound(target, bps, CAP_BPS);
+    }
+
+    /// @dev Create a round with a custom target, schedule and return cap as the platform.
+    function _createRound(uint256 target, uint16[] memory bps, uint16 capBps)
+        internal
+        returns (uint256)
+    {
         vm.prank(platform);
-        return escrow.createRound(founder, target, deadline, bps);
+        return escrow.createRound(founder, target, deadline, bps, capBps);
     }
 
     /// @dev Invest `amount` as `investor`.
@@ -79,6 +89,22 @@ abstract contract BaseTest is Test {
         _invest(alice, roundId, aliceAmount);
         vm.warp(deadline + 1);
         escrow.finalize(roundId);
+    }
+
+    /// @dev Release every milestone of a Funded round as the platform.
+    function _releaseAll(uint256 roundId) internal {
+        uint256 count = escrow.getMilestones(roundId).length;
+        for (uint256 i; i < count; ++i) {
+            vm.prank(platform);
+            escrow.releaseMilestone(roundId);
+        }
+    }
+
+    /// @dev Push `amount` of revenue into a round as `from` (minting + approving first).
+    function _distribute(address from, uint256 roundId, uint256 amount) internal {
+        _fund(from, amount);
+        vm.prank(from);
+        escrow.distribute(roundId, amount);
     }
 
     /// @dev Status of a round as the enum.

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
+import {IRevenueShare} from "./IRevenueShare.sol";
 import {IOperated} from "./Operated.sol";
 import {RoundTypes} from "./RoundTypes.sol";
 
@@ -8,7 +9,8 @@ import {RoundTypes} from "./RoundTypes.sol";
 /// @notice Milestone-based USDC escrow for startup fundraising rounds.
 /// @dev Investors fund an open round; once the target is met the platform releases
 ///      tranches to the founder. If the deadline passes under target, investors refund.
-interface IRoundEscrow is IOperated {
+///      Funded rounds then repay investors through `IRevenueShare` up to a return cap.
+interface IRoundEscrow is IOperated, IRevenueShare {
     // ───────────────────────────── mutations ─────────────────────────────
 
     /// @notice Create a new round. Only the platform operator may call.
@@ -16,12 +18,15 @@ interface IRoundEscrow is IOperated {
     /// @param target Amount of USDC (6 decimals) required for the round to succeed.
     /// @param deadline Unix timestamp after which no more investments are accepted.
     /// @param milestoneBps Release schedule in basis points; must sum to 10 000.
+    /// @param returnCapBps Investor return cap as a multiple of `raised` in basis points;
+    ///        10 000 (1.0x) to 50 000 (5.0x) inclusive.
     /// @return roundId Sequential id starting at 1.
     function createRound(
         address founder,
         uint256 target,
         uint64 deadline,
-        uint16[] calldata milestoneBps
+        uint16[] calldata milestoneBps,
+        uint16 returnCapBps
     ) external returns (uint256 roundId);
 
     /// @notice Invest USDC into an open round. Caller must have approved this contract.
@@ -32,6 +37,8 @@ interface IRoundEscrow is IOperated {
     function finalize(uint256 roundId) external;
 
     /// @notice Release the next milestone tranche to the founder. Only the platform.
+    /// @dev After the last tranche the round becomes Closed, or Repaid if the return cap
+    ///      has already been fully distributed.
     function releaseMilestone(uint256 roundId) external;
 
     /// @notice Withdraw the caller's contribution from a Failed round.

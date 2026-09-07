@@ -9,7 +9,7 @@ import {RoundTypes} from "./RoundTypes.sol";
 
 /// @title RoundEscrowBase
 /// @notice Storage, read-only views and validation helpers shared by RoundEscrow.
-/// @dev State-changing logic lives in `RoundEscrow`; this base has no external mutations.
+/// @dev State-changing logic lives in `RevenueShare` / `RoundEscrow`; this base has none.
 abstract contract RoundEscrowBase is IRoundEscrow, Operated, ReentrancyGuard {
     /// @dev Escrowed token (USDC, 6 decimals on Arc).
     IERC20 internal immutable _USDC;
@@ -86,5 +86,12 @@ abstract contract RoundEscrowBase is IRoundEscrow, Operated, ReentrancyGuard {
             sum += bps[i];
         }
         if (sum != RoundTypes.BPS_DENOMINATOR) revert RoundTypes.InvalidMilestones();
+    }
+
+    /// @dev Return cap must be between 1.0x and 5.0x of the amount raised.
+    function _validateReturnCap(uint16 bps) internal pure {
+        if (bps < RoundTypes.MIN_RETURN_CAP_BPS || bps > RoundTypes.MAX_RETURN_CAP_BPS) {
+            revert RoundTypes.InvalidReturnCap();
+        }
     }
 }
