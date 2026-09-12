@@ -7,8 +7,9 @@ import { X402ServerFactory } from './x402-server.factory';
 
 type ExpressMiddleware = (req: Request, res: Response, next: NextFunction) => Promise<void>;
 
-// Nest adapter around @x402/express. When x402 is not configured (no payTo account)
-// the premium route is served for free and a warning is logged once.
+// Nest adapter around @x402/express. The report itself is free by default — founders
+// gate their own numbers instead of the platform charging for its research — so this
+// only arms when X402_GATE_REPORTS is on and a payTo account is configured.
 @Injectable()
 export class X402Middleware implements NestMiddleware {
   private readonly log = new Logger(X402Middleware.name);
@@ -16,7 +17,7 @@ export class X402Middleware implements NestMiddleware {
 
   constructor(config: AppConfig, factory: X402ServerFactory) {
     if (!config.features.x402) {
-      this.log.warn('HEDERA_PAYTO_ACCOUNT_ID not set: premium routes are served without payment');
+      this.log.log('report paywall off: research is free, founders gate their own data');
       this.handler = null;
       return;
     }

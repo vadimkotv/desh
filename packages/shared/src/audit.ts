@@ -5,6 +5,9 @@ import { z } from 'zod';
 export const AuditKind = z.enum([
   'AGENT_REGISTERED',
   'DATA_PURCHASED',
+  'ACCESS_REQUESTED',
+  'ACCESS_GRANTED',
+  'ACCESS_DENIED',
   'DECISION_MADE',
   'APPROVAL_REQUESTED',
   'DECISION_APPROVED',

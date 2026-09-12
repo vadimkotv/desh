@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
-import type { DecisionVerdict, DueDiligenceReport } from '@agentipo/shared';
+import type { DecisionVerdict } from '@agentipo/shared';
 import { Agent0Client } from '../../data-room/infrastructure/graph-agent0/agent0.client';
+import type { AcquiredReport } from './acquire-report.step';
 import type { RoundDetail } from '../../startups/domain/round.repository';
 import type { AgentRecord } from '../domain/agent.repository';
 import { mandateGate } from '../domain/mandate.gate';
@@ -24,7 +25,8 @@ export class DecideRoundStep {
     private readonly agent0: Agent0Client,
   ) {}
 
-  async run(agent: AgentRecord, round: RoundDetail, report: DueDiligenceReport, reporter: RunReporter = NOOP_REPORTER): Promise<RoundVerdict> {
+  async run(agent: AgentRecord, round: RoundDetail, acquired: AcquiredReport, reporter: RunReporter = NOOP_REPORTER): Promise<RoundVerdict> {
+    const { report } = acquired;
     const gate = mandateGate(agent.mandate, report);
     reporter.emit(gate.pass ? 'gate.passed' : 'gate.failed', { reason: gate.reason, score: report.score, minScore: agent.mandate.minScore });
     if (!gate.pass) {
@@ -40,7 +42,12 @@ export class DecideRoundStep {
     const engine = this.engines.resolve();
     reporter.emit('engine.deciding', { engine: engine.name, maxAmountUsdc: spend.amountUsdc });
     const verdict = await engine.decide({
-      mandate: agent.mandate, round, report, maxAmountUsdc: spend.amountUsdc, selfReputation: await this.reputationOf(agent),
+      mandate: agent.mandate,
+      round,
+      report,
+      metrics: acquired.disclosure.metrics,
+      maxAmountUsdc: spend.amountUsdc,
+      selfReputation: await this.reputationOf(agent),
     });
     const amountUsdc = verdict.action === 'INVEST' ? Math.min(verdict.amountUsdc, spend.amountUsdc) : 0;
     const action = amountUsdc < round.minTicketUsdc && verdict.action === 'INVEST' ? 'WATCH' : verdict.action;

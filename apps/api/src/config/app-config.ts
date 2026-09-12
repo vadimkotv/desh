@@ -28,7 +28,7 @@ export class AppConfig {
       arcEscrow: Boolean(e.ARC_ESCROW_ADDRESS && e.ARC_PLATFORM_PRIVATE_KEY),
       circleWallets: Boolean(e.CIRCLE_API_KEY && e.CIRCLE_ENTITY_SECRET && e.CIRCLE_WALLET_SET_ID),
       hedera: Boolean(e.HEDERA_OPERATOR_ID && e.HEDERA_OPERATOR_KEY),
-      x402: Boolean(e.HEDERA_PAYTO_ACCOUNT_ID),
+      x402: Boolean(e.HEDERA_PAYTO_ACCOUNT_ID) && e.X402_GATE_REPORTS === 'true',
       hcs: Boolean(e.HEDERA_OPERATOR_ID && e.HEDERA_OPERATOR_KEY),
       agentKeys: Boolean(e.AGENT_MASTER_MNEMONIC),
       llm: Boolean(e.ANTHROPIC_API_KEY),

@@ -56,6 +56,10 @@ export const api = {
   ddHistory: (roundId: string) =>
     get<T.DdHistoryPoint[]>(`/due-diligence/rounds/${roundId}/history`),
   signals: (startupId: string) => get<S.Signal[]>(`/data-room/startups/${startupId}/signals`),
+  metrics: (startupId: string, agentId?: string) =>
+    get<T.Disclosure>(`/data-room/startups/${startupId}/metrics${agentId ? `?agentId=${agentId}` : ''}`),
+  accessRequests: (startupId: string) =>
+    get<S.AccessRequest[]>(`/data-room/startups/${startupId}/access`),
   agents: () => get<S.Agent[]>('/agents'),
   reviewFeed: () => get<S.ReviewFeedItem[]>('/agents/feed'),
   agent: (id: string) => get<S.Agent>(`/agents/${id}`),
@@ -84,6 +88,8 @@ export const api = {
   settleExit: (id: string, exit: S.SettleExit) => post<T.RoundDetail>(`/rounds/${id}/exit`, exit),
   syncRound: (id: string) => post<T.RoundDetail>(`/rounds/${id}/sync`),
   refreshDataRoom: (startupId: string) => post<unknown>(`/data-room/startups/${startupId}/refresh`),
+  grantAccess: (id: string) => post<S.AccessRequest>(`/data-room/access/${id}/grant`),
+  denyAccess: (id: string) => post<S.AccessRequest>(`/data-room/access/${id}/deny`),
   generateReport: (roundId: string) =>
     post<S.DueDiligenceReport>(`/due-diligence/rounds/${roundId}/generate`),
 };

@@ -4,6 +4,7 @@ import { mnemonicToAccount } from 'viem/accounts';
 import { PrismaClient } from '../src/generated/prisma/client';
 import { DEMO_AGENTS } from './seed-agents';
 import { DEMO_STARTUPS } from './seed-data';
+import { DEMO_METRICS } from './seed-metrics';
 
 // Demo fixtures: fictional startups whose "treasury"/"token" point at real mainnet
 // contracts so The Graph providers return live data, plus three disagreeing agents.
@@ -17,6 +18,9 @@ async function main(): Promise<void> {
     await prisma.round.create({
       data: { startupId: startup.id, targetUsdc: demo.targetUsdc, equityBps: demo.equityBps, minTicketUsdc: 10, deadline, milestones: demo.milestones },
     });
+    for (const metric of DEMO_METRICS[demo.name] ?? []) {
+      await prisma.founderMetric.create({ data: { startupId: startup.id, ...metric, points: metric.points } });
+    }
     console.log(`seeded startup ${startup.name}`);
   }
 

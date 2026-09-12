@@ -35,6 +35,9 @@ export const EnvSchema = z.object({
   HEDERA_PAYTO_ACCOUNT_ID: optionalStr,
   HEDERA_HCS_TOPIC_ID: optionalStr,
   X402_FACILITATOR_URL: z.string().url().default('https://api.testnet.blocky402.com'),
+  // Off by default: research is free and founders gate their own data instead.
+  // Set true to monetize the report over x402 as well (needs HEDERA_PAYTO_ACCOUNT_ID).
+  X402_GATE_REPORTS: z.enum(['true', 'false']).default('false'),
   X402_PREMIUM_REPORT_PRICE: z.string().default('$0.01'),
   X402_ASSET: z.enum(['USDC', 'HBAR']).default('USDC'),
   X402_HBAR_TINYBARS: z.string().regex(/^\d+$/).default('10000000'),

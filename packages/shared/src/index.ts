@@ -8,3 +8,6 @@ export * from './audit.js';
 export * from './run-events.js';
 export * from './returns.js';
 export * from './review.js';
+export * from './metrics.js';
+export * from './growth.js';
+export * from './access.js';

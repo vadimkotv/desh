@@ -14,6 +14,12 @@ export function auditSummary(entry: AuditEntry): string {
       return `bought premium report${s(p.txId) ? ` · tx ${s(p.txId)}` : ''}`;
     case 'DECISION_MADE':
       return `${s(p.action)}${n(p.amountUsdc) > 0 ? ` ${num(n(p.amountUsdc))} USDC` : ''} via ${s(p.engine) || 'engine'}`;
+    case 'ACCESS_REQUESTED':
+      return `🔒 asked the founder to open ${n(p.withheld) || ''} gated metric(s)`;
+    case 'ACCESS_GRANTED':
+      return `🔓 ${s(p.startup)} opened its gated data room to this agent`;
+    case 'ACCESS_DENIED':
+      return `✕ ${s(p.startup)} declined to open its data room`;
     case 'APPROVAL_REQUESTED':
       return `✋ ${num(n(p.amountUsdc))} USDC proposed — waiting on a human`;
     case 'DECISION_APPROVED':

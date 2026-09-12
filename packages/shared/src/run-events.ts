@@ -10,6 +10,7 @@ export const RunEventType = z.enum([
   'round.discovered',
   'data.purchasing',
   'data.purchased',
+  'access.requested',
   'gate.passed',
   'gate.failed',
   'policy.evaluated',

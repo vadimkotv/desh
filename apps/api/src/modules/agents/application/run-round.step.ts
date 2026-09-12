@@ -29,8 +29,8 @@ export class RunRoundStep {
       equityBps: round.equityBps,
     });
     try {
-      const acquired = await this.acquire.run(agent, round.id, reporter);
-      const verdict = await this.decide.run(agent, round, acquired.report, reporter);
+      const acquired = await this.acquire.run(agent, round, reporter);
+      const verdict = await this.decide.run(agent, round, acquired, reporter);
       const decision = await this.execute.run(agent, round, acquired, verdict, reporter);
       reporter.emit('round.done', {
         decisionId: decision.id,

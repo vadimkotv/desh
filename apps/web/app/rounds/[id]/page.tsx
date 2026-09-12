@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import { GrowthPanel } from '@/components/startups/growth-panel';
 import { DdSection } from '@/components/rounds/dd-section';
 import { InvestmentsList } from '@/components/rounds/investments-list';
 import { LifecycleStrip } from '@/components/rounds/lifecycle-strip';
@@ -8,7 +9,7 @@ import { OnchainPanel } from '@/components/rounds/onchain-panel';
 import { RoundHeader } from '@/components/rounds/round-header';
 import { SignalsTable } from '@/components/rounds/signals-table';
 import { SwarmPanel } from '@/components/rounds/swarm-panel';
-import { X402Callout } from '@/components/rounds/x402-callout';
+import { DataAccessCallout } from '@/components/rounds/data-access-callout';
 import { ApiOffline } from '@/components/ui/empty-state';
 import { api, listOrEmpty } from '@/lib/api';
 import { isOffline } from '@/lib/types';
@@ -29,8 +30,11 @@ export default async function RoundPage({ params }: RoundPageProps) {
     reportResult,
     historyResult,
     signalsResult,
+    metricsResult,
+    accessResult,
     agentsResult,
     pricingResult,
+    healthResult,
     onchainResult,
     returnsResult,
     exitsResult,
@@ -38,8 +42,11 @@ export default async function RoundPage({ params }: RoundPageProps) {
     api.ddReport(round.id),
     api.ddHistory(round.id),
     api.signals(round.startupId),
+    api.metrics(round.startupId),
+    api.accessRequests(round.startupId),
     api.agents(),
     api.pricing(),
+    api.health(),
     onchain ? api.onchainRound(round.onchainRoundId as number) : Promise.resolve(null),
     onchain ? api.roundReturns(round.id) : Promise.resolve(null),
     onchain ? api.exits(round.id) : Promise.resolve(null),
@@ -50,6 +57,8 @@ export default async function RoundPage({ params }: RoundPageProps) {
   const report = reportResult.ok ? reportResult.data : null;
   const history = listOrEmpty(historyResult).items;
   const signals = listOrEmpty(signalsResult).items;
+  const disclosure = metricsResult.ok ? metricsResult.data : null;
+  const accessRequests = listOrEmpty(accessResult).items;
   const agents = listOrEmpty(agentsResult).items;
 
   return (
@@ -58,6 +67,11 @@ export default async function RoundPage({ params }: RoundPageProps) {
       <LifecycleStrip status={round.status} />
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="flex flex-col gap-4 lg:col-span-2">
+          <GrowthPanel
+            metrics={disclosure?.metrics ?? []}
+            withheldCount={disclosure?.gatedCount ?? 0}
+            requests={accessRequests}
+          />
           <DdSection startupId={round.startupId} report={report} history={history} />
           <SwarmPanel roundId={round.id} agents={agents} round={round} status={round.status} />
           <ReturnsPanel returns={returns} exits={exits} chainId={round.investments[0]?.chainId ?? 0} />
@@ -69,7 +83,11 @@ export default async function RoundPage({ params }: RoundPageProps) {
           {onchain && (
             <OperatorActions round={round} releasedCount={chain?.releasedCount ?? 0} />
           )}
-          <X402Callout roundId={round.id} pricing={pricingResult.ok ? pricingResult.data : null} />
+          <DataAccessCallout
+            roundId={round.id}
+            pricing={pricingResult.ok ? pricingResult.data : null}
+            paywalled={healthResult.ok && healthResult.data.features.x402}
+          />
         </div>
       </div>
     </div>

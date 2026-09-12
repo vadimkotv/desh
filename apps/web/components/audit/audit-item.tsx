@@ -9,6 +9,9 @@ import { auditSummary } from './audit-summary';
 const kindTone: Record<AuditKind, BadgeTone> = {
   AGENT_REGISTERED: 'agent',
   DATA_PURCHASED: 'amber',
+  ACCESS_REQUESTED: 'amber',
+  ACCESS_GRANTED: 'accent',
+  ACCESS_DENIED: 'neutral',
   DECISION_MADE: 'info',
   APPROVAL_REQUESTED: 'amber',
   DECISION_APPROVED: 'accent',
@@ -25,6 +28,9 @@ const kindTone: Record<AuditKind, BadgeTone> = {
 const dotTone: Record<AuditKind, string> = {
   AGENT_REGISTERED: 'bg-agent',
   DATA_PURCHASED: 'bg-amber',
+  ACCESS_REQUESTED: 'bg-amber',
+  ACCESS_GRANTED: 'bg-accent',
+  ACCESS_DENIED: 'bg-line-strong',
   DECISION_MADE: 'bg-info',
   APPROVAL_REQUESTED: 'bg-amber',
   DECISION_APPROVED: 'bg-accent',

@@ -15,6 +15,17 @@ enum RoundStatus {
   EXITED
 }
 
+enum Visibility {
+  PUBLIC
+  GATED
+}
+
+enum AccessStatus {
+  PENDING
+  GRANTED
+  DENIED
+}
+
 enum ExitKind {
   ACQUISITION
   IPO

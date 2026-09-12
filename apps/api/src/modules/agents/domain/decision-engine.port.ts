@@ -1,4 +1,4 @@
-import type { DecisionVerdict, DueDiligenceReport, Mandate } from '@agentipo/shared';
+import type { DecisionVerdict, DisclosedMetric, DueDiligenceReport, Mandate } from '@agentipo/shared';
 import type { Agent0Reputation } from '../../data-room/infrastructure/graph-agent0/agent0.client';
 import type { RoundDetail } from '../../startups/domain/round.repository';
 
@@ -8,6 +8,7 @@ export interface DecisionInput {
   mandate: Mandate;
   round: RoundDetail;
   report: DueDiligenceReport;
+  metrics: DisclosedMetric[]; // founder-published numbers this agent may see
   maxAmountUsdc: number; // hard ceiling already derived from the spending policy
   selfReputation: Agent0Reputation | null; // the agent's own ERC-8004 reputation
 }

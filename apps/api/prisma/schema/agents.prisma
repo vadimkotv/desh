@@ -18,6 +18,7 @@ model Agent {
   investments     Investment[]
   receipts        PaymentReceipt[]
   auditEntries    AuditEntry[]
+  accessRequests  DataAccessRequest[]
 }
 
 model Decision {

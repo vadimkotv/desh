@@ -13,6 +13,40 @@ model Startup {
   createdAt       DateTime           @default(now())
   rounds          Round[]
   snapshots       DataRoomSnapshot[]
+  metrics         FounderMetric[]
+  accessRequests  DataAccessRequest[]
+}
+
+// Numbers only the founder has. Stored as a time series, because a metric without a
+// trajectory tells an investor nothing. GATED rows are released per agent.
+model FounderMetric {
+  id         String     @id @default(uuid())
+  startupId  String
+  startup    Startup    @relation(fields: [startupId], references: [id])
+  key        String
+  label      String
+  unit       String     @default("usd")
+  visibility Visibility @default(PUBLIC)
+  points     Json
+  updatedAt  DateTime   @updatedAt
+
+  @@unique([startupId, key])
+}
+
+// One agent asking one founder to open the gated part of the data room.
+model DataAccessRequest {
+  id        String       @id @default(uuid())
+  startupId String
+  startup   Startup      @relation(fields: [startupId], references: [id])
+  agentId   String
+  agent     Agent        @relation(fields: [agentId], references: [id])
+  status    AccessStatus @default(PENDING)
+  reason    String       @default("")
+  decidedAt DateTime?
+  createdAt DateTime     @default(now())
+
+  @@unique([startupId, agentId])
+  @@index([status, createdAt])
 }
 
 model Round {

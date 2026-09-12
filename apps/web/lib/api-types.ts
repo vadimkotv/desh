@@ -1,4 +1,4 @@
-import type { Investment, Round, Startup } from '@agentipo/shared';
+import type { AccessStatus, DisclosedMetric, Investment, Round, Startup } from '@agentipo/shared';
 
 // Response shapes of endpoints that the shared package does not model.
 // The API's GET /rounds and GET /rounds/:id embed the startup and investments.
@@ -59,6 +59,13 @@ export type OnchainRound = {
   entryValuationUsdc?: number;
   releasedUsdc?: number;
   proceedsUsdc?: number;
+};
+
+export type Disclosure = {
+  metrics: DisclosedMetric[];
+  gatedCount: number;
+  withheldCount: number;
+  access: AccessStatus | 'NONE';
 };
 
 export type ClaimResult = { agentId: string; roundId: string; claimedUsdc: number; txHash: string | null; chainId: number };
