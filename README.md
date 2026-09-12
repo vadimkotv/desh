@@ -1,17 +1,25 @@
 # AgentIPO
 
-**Autonomous underwriting for revenue-based startup financing: the investor is an AI agent bound by a human mandate, capital sits in programmable escrow, and repayment is enforced by code.**
+**Startup fundraising where the investor is an AI agent bound by a human mandate, capital sits in
+programmable escrow, and the payout is enforced by code.**
 
-Founders publish a round with a verifiable data room. Investor agents (owned by humans who write a
-*mandate*, never a buy order) buy due-diligence data per query over **x402 on Hedera**, reason over
-**live on-chain signals indexed by The Graph**, and settle USDC into a milestone escrow on **Arc**.
-Every decision is written to a **Hedera Consensus Service** topic, and every agent has an
-**ERC-8004** identity so its track record is public.
+Founders publish a round with a verifiable data room. Investor agents — owned by humans who write a
+*mandate*, never a buy order — reason over **live on-chain signals indexed by The Graph**, ask the
+founder for whatever is not public, and settle USDC into a milestone escrow on **Arc**. Every
+decision is written to a **Hedera Consensus Service** topic, and every agent carries an **ERC-8004**
+identity, so its track record is public.
 
-**What investors get:** not a token and not a promise of an exit. Each round carries a *return cap*
-(e.g. 1.5×). Once funded, the startup routes revenue into the escrow and agents `claim` their pro-rata
-share until the cap is reached — revenue-based financing (the Pipe/Clearco model) with on-chain data
-instead of PDFs and code instead of covenants.
+**What investors buy:** equity. A round sells a stake (`equityBps`), which fixes the price —
+`raised × 10 000 / equityBps` is the valuation it was struck at. Capital comes back only on a
+**liquidity event**: acquisition, IPO, TGE or a contract payout. Whoever settles the exit pays
+proceeds into the escrow and every investor claims their pro-rata share, uncapped. No revenue share,
+no repayment schedule, nothing to service — the same shape as a normal seed round, with on-chain
+data instead of PDFs and an escrow instead of covenants.
+
+**Two things the platform does not do:** it does not charge agents to look (research on public
+evidence is free — founders gate their *own* numbers and open them to the agents they choose), and
+it does not force full autonomy (an agent can be `ADVISORY`: identical research, but a human presses
+the final invest button).
 
 Built for ETHGlobal ETHOnline 2026 · tracks: The Graph, Arc (Circle), Hedera.
 
@@ -19,10 +27,14 @@ Built for ETHGlobal ETHOnline 2026 · tracks: The Graph, Arc (Circle), Hedera.
 founder ──► round + data room ──► The Graph (Token API · Messari DEX · Agent0)
                                        │
                                        ▼
-agent ──► x402 pays for report ──► due-diligence engine ──► Claude / rules ──► spending policy
-                (Hedera)                                                            │
-                                                                                    ▼
+agent ──► free report + founder metrics ──► due-diligence engine ──► Claude / rules ──► spending policy
+             (asks for gated ones)                  (growth = slope)                        │
+                                                                     AUTONOMOUS ────────────┤
+                                                                     ADVISORY ──► human ────┤
+                                                                                            ▼
                                              HCS audit ◄── RoundEscrow.invest(USDC) on Arc
+                                                                                            │
+                                            acquisition / IPO / TGE / contract ──► settleExit ──► claim
 ```
 
 ## Quick start
@@ -44,7 +56,9 @@ AGENT_MASTER_MNEMONIC="test test test test test test test test test test test ju
 DEMO_SIGNALS=true               # deterministic fixture signals instead of The Graph
 ```
 
-Then: open http://localhost:3000 → press **Run swarm** on a round: three seeded agents with different mandates buy the report, decide and settle live (SSE). Rounds have no
+Then: open http://localhost:3000 → press **Run** on an agent and it starts watching for rounds that
+match its mandate in the background; **Run swarm** on a round puts every agent on it at once. Three
+seeded agents settle autonomously, a fourth (`Atlas`) files a proposal for you to approve. Rounds have no
 on-chain escrow yet, so settlements are recorded as `FAILED: round has no on-chain escrow id` —
 that is the honest degraded mode. Add keys and the same code path goes live:
 
@@ -53,7 +67,7 @@ that is the honest degraded mode. Add keys and the same code path goes live:
 | `GRAPH_TOKEN_API_JWT` | Token API provider: holders, transfers, treasury balances |
 | `GRAPH_GATEWAY_API_KEY` (+ `GRAPH_MESSARI_DEX_SUBGRAPH_ID`) | Agent0/ERC-8004 reputation + Messari standardized DEX liquidity |
 | `ARC_ESCROW_ADDRESS` + `ARC_PLATFORM_PRIVATE_KEY` | Rounds are created in `RoundEscrow` on Arc testnet; agents invest real USDC |
-| `HEDERA_OPERATOR_ID/KEY` + `HEDERA_PAYTO_ACCOUNT_ID` | x402 paywall via Blocky402, agent Hedera accounts, HCS audit topic |
+| `HEDERA_OPERATOR_ID/KEY` + `HEDERA_PAYTO_ACCOUNT_ID` | Agent Hedera accounts, HCS audit topic; with `X402_GATE_REPORTS=true` also the x402 report paywall via Blocky402 |
 | `CIRCLE_API_KEY/ENTITY_SECRET/WALLET_SET_ID` | `CIRCLE` wallet kind → Circle developer-controlled wallets on `ARC-TESTNET` |
 | `ANTHROPIC_API_KEY` | Claude decision engine (forced tool-use, mandate-bounded) instead of rules |
 
@@ -79,14 +93,14 @@ pnpm --filter @agentipo/api dev:facilitator-stub     # → X402_FACILITATOR_URL=
 | `apps/api` | NestJS 11 platform. Ports & adapters per module, every file ≤ 100 lines. |
 | `apps/web` | Next.js 16 **command center**: live SSE pipeline (buy data → gate → policy → engine → settle), swarm runs, radar/sparkline charts, honest provenance badges. Screens in `docs/screens/`. |
 | `packages/shared` | zod contracts + chain constants shared by API and web. |
-| `packages/contracts` | Foundry: `RoundEscrow.sol` (target-or-refund, milestone release, revenue-share `distribute`/`claim` up to a cap) + 48 tests. |
+| `packages/contracts` | Foundry: `RoundEscrow.sol` (target-or-refund, milestone release, `settleExit`/`claim` on a liquidity event) + 52 tests. |
 | `ARCHITECTURE.md` | Module map, agent pipeline, REST surface, track mapping. |
 | `docs/` | Demo script, submission notes per track, setup for each sponsor. |
 
 ## The whole story in one command
 
 ```bash
-pnpm --filter @agentipo/api demo:flow        # round → swarm waves → finalize → milestones → revenue → claims
+pnpm --filter @agentipo/api demo:flow        # round → swarm → human approves → finalize → milestones → exit → claims
 ```
 
 ## Commands
@@ -94,6 +108,7 @@ pnpm --filter @agentipo/api demo:flow        # round → swarm waves → finaliz
 ```bash
 pnpm typecheck · pnpm lint · pnpm test · pnpm check:file-size · pnpm contracts:test
 pnpm --filter @agentipo/api agent:run <agentId> [roundId]     # run an agent from the CLI
+pnpm --filter @agentipo/api dev:fund-agents                   # top up agent wallets (USDC + gas) on a local fork
 ```
 
 ## Design rules
@@ -101,4 +116,5 @@ pnpm --filter @agentipo/api agent:run <agentId> [roundId]     # run an agent fro
 - **One reason to change per file, ≤ 100 lines** — enforced by ESLint `max-lines` and `scripts/check-file-size.mjs`.
 - **Domain is framework-free**: evaluators, spending policy, mandate gate are pure functions with Vitest specs.
 - **Adapters are optional**: each sponsor integration registers only when its credentials exist; the API never crashes because a key is missing.
-- **Money is bounded twice**: the spending policy computes a ceiling *before* the LLM sees the deal, and the verdict is clamped again *after*.
+- **Money is bounded twice**: the spending policy computes a ceiling *before* the LLM sees the deal, and the verdict is clamped again *after*. Approving a proposal re-runs that policy, because the world moves between the proposal and the click.
+- **Missing data is never zero**: a withheld metric, an unreadable index and a single reading with no trajectory all land as `unknown`, which lowers *coverage* instead of inventing a score.

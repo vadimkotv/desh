@@ -28,27 +28,44 @@ The agent's *own* ERC-8004 reputation (read from the Agent0 subgraph) is fed bac
 
 ## Hedera — AI & Agentic Payments, $2k × 3
 
-- **Live x402-gated service**: `GET /due-diligence/rounds/:id/premium`, priced in `payments/infrastructure/x402/premium-routes.ts`,
-  settled by **Blocky402** (`X402_FACILITATOR_URL=https://api.testnet.blocky402.com`), Hedera `exact` scheme, USDC `0.0.429274` or HBAR.
-- **Agent consuming it end-to-end**: `agents/application/acquire-report.step.ts` → `payments/infrastructure/x402/paid-fetch.factory.ts`
-  (agent signs a partially-signed `TransferTransaction` with its own ECDSA key; facilitator co-signs and settles).
-- **Bonus**: per-call metering (every report request is a fresh payment), HCS audit trail (`audit/infrastructure/hcs.publisher.ts`),
-  ERC-8004 identity (`agents/infrastructure/erc8004/*`), each agent gets its own Hedera account (`hedera-account.factory.ts`).
-- Demo video must show: 402 → signed payment → settled tx on HashScan → report delivered.
+- **HCS audit trail is the load-bearing piece**: every consequential step — data access requested and
+  granted, decision made, approval, settlement, exit, claim — is written to a Hedera Consensus Service
+  topic with sequence numbers (`audit/infrastructure/hcs.publisher.ts`). A third party can audit *why*
+  an agent invested without trusting our database.
+- **Agent identity**: each agent gets its own Hedera account (`hedera-account.factory.ts`) and an
+  ERC-8004 identity (`agents/infrastructure/erc8004/*`) whose reputation is read back from the Agent0
+  subgraph and fed into its own decision prompt.
+- **x402 rail, opt-in**: `X402_GATE_REPORTS=true` prices `GET /due-diligence/rounds/:id/premium`
+  (`payments/infrastructure/x402/premium-routes.ts`) and settles it through **Blocky402**, Hedera
+  `exact` scheme, USDC `0.0.429274` or HBAR. The agent signs a partially-signed `TransferTransaction`
+  with its own ECDSA key (`payments/infrastructure/x402/paid-fetch.factory.ts`); the facilitator
+  co-signs and settles.
+- **Why it is off by default — say this out loud in the submission**: the platform selling its own
+  research is the wrong product. Public on-chain evidence is free to read; what is scarce is the
+  *founder's* private numbers, and those are gated by the founder and opened per agent. x402 remains
+  the rail for a priced data room, not a tollbooth the platform owns.
+- Demo video, if showing the paid path: 402 → signed payment → settled tx on HashScan → report.
 
 ## Arc — Best Agentic Economy App with Circle Agent Stack, $1,667
 
 - **Agents with wallets**: `LOCAL_KEY` (HD-derived) or `CIRCLE` (Circle developer-controlled wallet on `ARC-TESTNET`,
   `settlement/infrastructure/circle/*`). Wallet kind is a strategy behind `SettlementRail`.
 - **Decision logic tied to real signals**: report → mandate gate → spending policy → Claude verdict → clamp.
+- **Human in the loop where it belongs**: an agent is `AUTONOMOUS` or `ADVISORY`. Advisory agents do the
+  identical research and file a proposal; approving re-runs the spending policy before anything settles,
+  and both paths converge on the same settlement step.
 - **Autonomous USDC settlement**: `RoundEscrow.invest` on Arc (USDC is the gas token; ERC-20 interface at `0x3600…0000`).
 - Submit: architecture diagram (ARCHITECTURE.md mermaid), video, docs, repo.
 
 ## Arc — Best DeFi / Onchain Finance App, $1,667
 
-- `packages/contracts/src/RoundEscrow.sol` + `RevenueShare.sol`: conditional USDC flows — target-or-refund, milestone-based
-  release to the founder, and revenue-based repayment: `distribute()` routes revenue into the round, investors `claim()` pro-rata
-  until `returnCapBps` (e.g. 1.5×) is reached, status → Repaid. 48 Foundry tests. Demo: `pnpm --filter @agentipo/api demo:flow`.
+- `packages/contracts/src/RoundEscrow.sol` + `ExitReturns.sol`: conditional USDC flows — target-or-refund,
+  milestone-based release to the founder, and an **equity payout on a liquidity event**: a round sells
+  `equityBps` (fixing the valuation at `raised × 10 000 / equityBps`), and `settleExit(roundId, kind,
+  valuation, proceeds, evidenceUri)` pays acquisition / IPO / TGE / contract proceeds into the escrow
+  for investors to `claim()` pro-rata, uncapped. An exit freezes the milestone schedule, so escrow the
+  founder never drew down returns to investors instead of stranding. 52 Foundry tests.
+  Demo: `pnpm --filter @agentipo/api demo:flow`.
 - Verified on Arcscan (see `packages/contracts/README.md`).
 
 ## Checklist before submitting

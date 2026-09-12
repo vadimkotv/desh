@@ -1,8 +1,9 @@
 # AgentIPO — Architecture
 
 > Open-data startup fundraising where the investor is an AI agent bound by a human mandate.
-> Founders publish a verifiable data room. Agents buy due-diligence data per query (x402 on Hedera),
-> reason over live on-chain signals (The Graph), and settle USDC into a milestone escrow (Arc).
+> Founders publish a verifiable data room and gate their own numbers. Agents reason over live
+> on-chain signals (The Graph), ask the founder for what is not public, and settle USDC into a
+> milestone escrow (Arc). A round sells equity and pays out on a liquidity event.
 
 ## 1. System overview
 
@@ -17,14 +18,21 @@ flowchart LR
     DR -->|Messari standardized subgraph| G2[(Graph Gateway)]
     DR -->|Agent0 / ERC-8004 subgraph| G2
     DR --> DD[Due Diligence Engine]
-    DD -->|premium report| X402[x402 paywall\nHedera testnet via Blocky402]
-    AG[Investor Agent Runner] -->|pays per query| X402
+    DR --> FM[Founder metrics\npublic or gated]
+    AG[Investor Agent Runner] -->|free report + disclosed metrics| DD
+    AG -->|asks for gated data| FM
+    F -->|grants access| FM
     AG --> DE[Decision Engine\nClaude / rules]
     DE --> SP[Spending Policy]
-    SP --> ST[Settlement]
+    SP --> MODE{Agent mode}
+    MODE -->|AUTONOMOUS| ST[Settlement]
+    MODE -->|ADVISORY| HU[Human approval] --> ST
     AG --> AU[Audit → HCS topic]
+    DD -.->|optional X402_GATE_REPORTS| X402[x402 · Hedera via Blocky402]
   end
   ST -->|invest USDC| ESC[(RoundEscrow.sol on Arc)]
+  EX[Acquisition · IPO · TGE · Contract] -->|settleExit| ESC
+  ESC -->|pro-rata claim| AG
   ST -.->|Circle Agent Wallet| CW[(Circle Dev-Controlled Wallets)]
   AG -->|register identity| ID[(ERC-8004 Identity Registry, Sepolia)]
   WEB[Next.js dashboard] --> API
@@ -36,9 +44,9 @@ flowchart LR
 | --- | --- |
 | The Graph — AI use case (from scratch) | Agents cannot decide without Graph data: `data-room` providers pull live Token API + subgraph data, the `due-diligence` engine turns it into findings, the `agents` decision engine reasons over it. |
 | The Graph — composable / standardized | Three Graph products composed: **Token API** (holders, transfers, balances), **Messari standardized DEX schema** (liquidity/volume across any DEX with one query), **Agent0 ERC-8004 subgraph** (identity + reputation). |
-| Hedera — AI & agentic payments | `GET /due-diligence/rounds/:id/premium` is x402-gated; settlement through Blocky402 facilitator on Hedera testnet. Agents pay per request with USDC/HBAR. Decisions are written to an HCS topic (bonus). ERC-8004 identity (bonus). |
+| Hedera — AI & agentic payments | Every consequential decision is written to an HCS topic with sequence numbers. Each agent gets its own Hedera account and an ERC-8004 identity. The x402 rail is intact and opt-in: `X402_GATE_REPORTS=true` prices `GET /due-diligence/rounds/:id/premium` and settles it through the Blocky402 facilitator, with the agent signing its own `TransferTransaction`. It is off by default because the platform does not sell its own research — founders gate theirs instead. |
 | Arc — agentic economy w/ Circle Agent Stack | Agents hold wallets (local key or Circle developer-controlled wallet on `ARC-TESTNET`), decide from real signals, enforce spending policy, settle USDC into `RoundEscrow`. |
-| Arc — DeFi / programmable money | `RoundEscrow.sol`: conditional USDC flows — target-or-refund, milestone-based release to the founder, and revenue-share repayment (`distribute` → pro-rata `claim` up to `returnCapBps`). |
+| Arc — DeFi / programmable money | `RoundEscrow.sol`: conditional USDC flows — target-or-refund, milestone-based release to the founder, and an equity payout on a liquidity event (`settleExit` → pro-rata `claim`, uncapped). An exit freezes the milestone schedule and returns undrawn escrow to investors. |
 
 ## 3. Monorepo layout
 
@@ -66,17 +74,17 @@ modules/<name>/
 | --- | --- | --- |
 | `startups` | Startup + Round registry, milestones | `StartupRepository`, `RoundRepository` |
 | `data-room` | Collect normalized `Signal[]` from many providers | `DataProvider` (Token API, Messari, Agent0, Arc escrow) |
-| `due-diligence` | Evaluators → `Finding[]` → scored report; free preview vs premium | `SignalEvaluator`, `ReportRepository` |
+| `due-diligence` | Evaluators → `Finding[]` → scored report, including **growth** read as a slope | `SignalEvaluator`, `ReportRepository` |
 | `payments` | x402 server (Hedera/Blocky402) + x402 client for agents; receipts | `PaidDataClient`, `PaymentReceiptRepository` |
 | `settlement` | Arc escrow interaction; wallets; spending policy | `SettlementRail`, `EscrowReader`, `AgentWalletFactory` |
 | `agents` | Mandates, ERC-8004 identity, decision engines, run loop | `DecisionEngine`, `AgentIdentity`, `AgentRepository` |
 | `audit` | Append-only log mirrored to Hedera Consensus Service | `AuditLog`, `ConsensusPublisher` |
-| `returns` | Round lifecycle (finalize, milestones, revenue distribution) and agent claims | `EscrowOperator`, `DistributionRepository` |
+| `returns` | Round lifecycle (finalize, milestones, exit settlement) and agent claims | `EscrowOperator`, `ExitEventRepository` |
 
 ### Agent run pipeline (`agents/application/run-agent.usecase.ts`)
 
 1. Load agent + mandate; list `OPEN` rounds matching mandate sectors.
-2. For each round: **buy** the premium DD report through x402 (`payments`), record receipt.
+2. For each round: **gather** the free DD report plus the founder metrics this agent may see; ask for the gated ones.
 3. **Decide** via `DecisionEngine` (Claude with structured tool output, or deterministic rules).
 4. **Bound** by `SpendingPolicy` (max ticket, per-round share, daily budget).
 5. **Settle** through `SettlementRail.invest()` on Arc → `Investment` row with tx hash.
@@ -94,7 +102,7 @@ modules/<name>/
 | GET | `/data-room/startups/:id/signals` | latest normalized signals |
 | POST | `/due-diligence/rounds/:id/generate` | build report from latest signals |
 | GET | `/due-diligence/rounds/:id` | free preview (score + summary) |
-| GET | `/due-diligence/rounds/:id/premium` | **x402-gated** full report |
+| GET | `/due-diligence/rounds/:id/premium` | full report (x402-gated only when `X402_GATE_REPORTS=true`) |
 | POST | `/agents` | create agent (wallet, Hedera account, mandate) |
 | GET | `/agents`, `/agents/:id` | |
 | POST | `/agents/:id/identity` | register ERC-8004 identity |
@@ -105,9 +113,13 @@ modules/<name>/
 | GET | `/agents/:id/decisions`, `/decisions` | decision feed |
 | GET | `/due-diligence/rounds/:id/history` | score history for sparklines |
 | GET | `/stats` | KPI strip |
-| POST | `/rounds/:id/finalize`, `/rounds/:id/milestones/release`, `/rounds/:id/distribute`, `/rounds/:id/sync` | operator lifecycle on the Arc escrow |
-| GET | `/rounds/:id/returns`, `/rounds/:id/distributions` | cap, distributed, per-investor claimable/claimed |
-| POST | `/agents/:id/claim?roundId=` | agent claims its revenue share with its own key |
+| POST | `/rounds/:id/finalize`, `/rounds/:id/milestones/release`, `/rounds/:id/exit`, `/rounds/:id/sync` | operator lifecycle on the Arc escrow |
+| GET | `/rounds/:id/returns`, `/rounds/:id/exits` | stake, entry valuation, proceeds, multiple, per-investor claimable/claimed |
+| GET/POST | `/data-room/startups/:id/metrics` | founder metrics as time series; gated ones come back withheld |
+| POST | `/data-room/startups/:id/access`, `/data-room/access/:id/grant\|deny` | an agent asks, the founder opens |
+| GET | `/decisions/pending` · POST `/decisions/:id/approve\|reject` | proposals from advisory agents |
+| POST | `/agents/:id/run`, `/agents/:id/pause` | background research on or off |
+| POST | `/agents/:id/claim?roundId=` | agent claims its share of the exit with its own key |
 | GET | `/payments/receipts` | x402 receipts |
 | GET | `/audit` | audit entries with HCS sequence numbers |
 | GET | `/health` | |
