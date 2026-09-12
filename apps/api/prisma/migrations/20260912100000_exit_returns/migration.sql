@@ -1,9 +1,10 @@
 -- Exit-based returns replace the revenue-share cap: a round pays out only on a
 -- liquidity event (acquisition / IPO / TGE / contract), pro-rata and uncapped.
 
--- AlterEnum: REPAID -> EXITED
-ALTER TYPE "RoundStatus" ADD VALUE IF NOT EXISTS 'EXITED';
-UPDATE "Round" SET "status" = 'EXITED' WHERE "status" = 'REPAID';
+-- AlterEnum: REPAID -> EXITED. Renaming keeps existing rows valid and, unlike
+-- ADD VALUE + UPDATE, is safe inside the transaction `prisma migrate` wraps this in
+-- (Postgres refuses to use an enum value added in the same transaction).
+ALTER TYPE "RoundStatus" RENAME VALUE 'REPAID' TO 'EXITED';
 
 -- CreateEnum
 CREATE TYPE "ExitKind" AS ENUM ('ACQUISITION', 'IPO', 'TGE', 'CONTRACT');
