@@ -14,7 +14,7 @@ export function SignalsTable({ signals }: { signals: Signal[] }) {
   return (
     <Panel eyebrow="data room" title="Signals" action={<span className="font-mono text-[10.5px] text-muted">{signals.length} observed</span>} bodyClassName="p-0">
       {signals.length === 0 ? (
-        <p className="p-4 text-[12px] text-muted">No signals collected yet. Use “Refresh data room”.</p>
+        <p className="p-4 text-[12px] text-muted">No signals collected yet. Use “Refresh” above.</p>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full min-w-[520px] text-left font-mono text-[11px]">

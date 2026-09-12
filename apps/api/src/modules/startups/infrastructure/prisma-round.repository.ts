@@ -54,15 +54,35 @@ export class PrismaRoundRepository implements RoundRepository {
     return rows.map(toRoundDetail);
   }
 
+  async findOpenUndecidedByAgent(sectors: string[], agentId: string): Promise<RoundDetail[]> {
+    const rows = await this.prisma.round.findMany({
+      where: {
+        status: 'OPEN',
+        deadline: { gt: new Date() },
+        startup: { sector: { in: sectors, mode: 'insensitive' } },
+        decisions: { none: { agentId } },
+      },
+      include,
+      orderBy: { createdAt: 'asc' },
+    });
+    return rows.map(toRoundDetail);
+  }
+
   async addRaised(id: string, amountUsdc: number): Promise<void> {
-    await this.prisma.round.update({ where: { id }, data: { raisedUsdc: { increment: amountUsdc } } });
+    await this.prisma.round.update({
+      where: { id },
+      data: { raisedUsdc: { increment: amountUsdc } },
+    });
   }
 
   async setStatus(id: string, status: RoundStatus): Promise<void> {
     await this.prisma.round.update({ where: { id }, data: { status } });
   }
 
-  async syncOnchain(id: string, state: { status: RoundStatus; raisedUsdc: number; distributedUsdc: number }): Promise<void> {
+  async syncOnchain(
+    id: string,
+    state: { status: RoundStatus; raisedUsdc: number; distributedUsdc: number },
+  ): Promise<void> {
     await this.prisma.round.update({ where: { id }, data: state });
   }
 }

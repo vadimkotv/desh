@@ -20,6 +20,11 @@ enum WalletKind {
   CIRCLE
 }
 
+enum AgentStatus {
+  PAUSED
+  RUNNING
+}
+
 enum DecisionAction {
   INVEST
   PASS

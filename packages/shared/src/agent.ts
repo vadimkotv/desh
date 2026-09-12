@@ -18,6 +18,9 @@ export type Mandate = z.infer<typeof MandateSchema>;
 export const WalletKind = z.enum(['LOCAL_KEY', 'CIRCLE']);
 export type WalletKind = z.infer<typeof WalletKind>;
 
+export const AgentStatus = z.enum(['PAUSED', 'RUNNING']);
+export type AgentStatus = z.infer<typeof AgentStatus>;
+
 export const CreateAgentSchema = z.object({
   name: z.string().min(2).max(60),
   ownerAddress: evmAddress,
@@ -35,6 +38,7 @@ export const AgentSchema = z.object({
   hederaAccountId: z.string().nullable(),
   erc8004AgentId: z.string().nullable(),
   erc8004ChainId: z.number().nullable(),
+  status: AgentStatus,
   mandate: MandateSchema,
   createdAt: z.string(),
 });

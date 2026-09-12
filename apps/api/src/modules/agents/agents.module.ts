@@ -5,6 +5,7 @@ import { PaymentsModule } from '../payments/payments.module';
 import { SettlementModule } from '../settlement/settlement.module';
 import { StartupsModule } from '../startups/startups.module';
 import { AcquireReportStep } from './application/acquire-report.step';
+import { AgentRuntimeService } from './application/agent-runtime.service';
 import { AgentQueries } from './application/agent-queries.usecase';
 import { CreateAgentUseCase } from './application/create-agent.usecase';
 import { DecideRoundStep } from './application/decide-round.step';
@@ -12,6 +13,7 @@ import { ExecuteDecisionStep } from './application/execute-decision.step';
 import { RegisterIdentityUseCase } from './application/register-identity.usecase';
 import { RunAgentUseCase } from './application/run-agent.usecase';
 import { RunEventBus } from './application/run-event.bus';
+import { RunRoundStep } from './application/run-round.step';
 import { AGENT_REPOSITORY } from './domain/agent.repository';
 import { DECISION_ENGINES } from './domain/decision-engine.port';
 import { DECISION_REPOSITORY } from './domain/decision.repository';
@@ -40,6 +42,8 @@ import { RunsController } from './presentation/runs.controller';
     ExecuteDecisionStep,
     RunEventBus,
     RunAgentUseCase,
+    RunRoundStep,
+    AgentRuntimeService,
     CreateAgentUseCase,
     RegisterIdentityUseCase,
     AgentQueries,

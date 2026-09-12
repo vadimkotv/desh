@@ -1,0 +1,4 @@
+CREATE TYPE "AgentStatus" AS ENUM ('PAUSED', 'RUNNING');
+
+ALTER TABLE "Agent"
+ADD COLUMN "status" "AgentStatus" NOT NULL DEFAULT 'PAUSED';

@@ -10,6 +10,7 @@ model Agent {
   erc8004AgentId  String?
   erc8004ChainId  Int?
   erc8004TxHash   String?
+  status          AgentStatus  @default(PAUSED)
   mandate         Json
   createdAt       DateTime     @default(now())
   decisions       Decision[]

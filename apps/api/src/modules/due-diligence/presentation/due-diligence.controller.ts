@@ -29,8 +29,17 @@ export class DueDiligenceController {
     return this.queries.history(id);
   }
 
+  @Get('rounds/:id/report')
+  @ApiOperation({ summary: 'Dashboard view of the latest existing agent research report' })
+  report(@Param('id', ParseUUIDPipe) id: string) {
+    return this.queries.full(id);
+  }
+
   @Get('rounds/:id/premium')
-  @ApiOperation({ summary: 'x402-gated: full findings and raw signals, generated on demand (paid per request on Hedera)' })
+  @ApiOperation({
+    summary:
+      'x402-gated: full findings and raw signals, generated on demand (paid per request on Hedera)',
+  })
   premium(@Param('id', ParseUUIDPipe) id: string) {
     return this.ensure.execute(id);
   }

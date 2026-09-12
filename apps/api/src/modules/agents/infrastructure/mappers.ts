@@ -1,5 +1,9 @@
 import type { Decision, Mandate } from '@agentipo/shared';
-import type { Agent as DbAgent, Decision as DbDecision, Investment as DbInvestment } from '../../../generated/prisma/client';
+import type {
+  Agent as DbAgent,
+  Decision as DbDecision,
+  Investment as DbInvestment,
+} from '../../../generated/prisma/client';
 import { decimalToNumber } from '../../../common/money';
 import { toInvestment } from '../../startups/infrastructure/mappers';
 import type { AgentRecord } from '../domain/agent.repository';
@@ -13,6 +17,7 @@ export const toAgentRecord = (a: DbAgent): AgentRecord => ({
   hederaAccountId: a.hederaAccountId,
   erc8004AgentId: a.erc8004AgentId,
   erc8004ChainId: a.erc8004ChainId,
+  status: a.status,
   mandate: a.mandate as Mandate,
   createdAt: a.createdAt.toISOString(),
   keyIndex: a.keyIndex,

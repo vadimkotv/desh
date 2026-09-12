@@ -30,7 +30,10 @@ export function LivePipeline({ agents, limit = 8, seed = [] }: LivePipelineProps
         <div className="flex flex-1 flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-line-strong px-6 py-14 text-center">
           <span className="live-dot text-2xl text-agent">◎</span>
           <p className="font-mono text-xs text-fg">Waiting for agents…</p>
-          <p className="text-[11px] text-muted">Press “Run swarm” on a round or “Run” on an agent to watch the pipeline execute step by step.</p>
+          <p className="text-[11px] text-muted">
+            Set an agent to “Running” and new matching startups will appear here as they are
+            researched.
+          </p>
         </div>
       ) : (
         <div className="flex flex-col gap-2">

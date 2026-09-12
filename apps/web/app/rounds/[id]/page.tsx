@@ -25,21 +25,29 @@ export default async function RoundPage({ params }: RoundPageProps) {
   const round = roundResult.data;
 
   const onchain = round.onchainRoundId !== null;
-  const [previewResult, historyResult, signalsResult, agentsResult, pricingResult, onchainResult, returnsResult, distResult] =
-    await Promise.all([
-      api.ddPreview(round.id),
-      api.ddHistory(round.id),
-      api.signals(round.startupId),
-      api.agents(),
-      api.pricing(),
-      onchain ? api.onchainRound(round.onchainRoundId as number) : Promise.resolve(null),
-      onchain ? api.roundReturns(round.id) : Promise.resolve(null),
-      onchain ? api.distributions(round.id) : Promise.resolve(null),
-    ]);
+  const [
+    reportResult,
+    historyResult,
+    signalsResult,
+    agentsResult,
+    pricingResult,
+    onchainResult,
+    returnsResult,
+    distResult,
+  ] = await Promise.all([
+    api.ddReport(round.id),
+    api.ddHistory(round.id),
+    api.signals(round.startupId),
+    api.agents(),
+    api.pricing(),
+    onchain ? api.onchainRound(round.onchainRoundId as number) : Promise.resolve(null),
+    onchain ? api.roundReturns(round.id) : Promise.resolve(null),
+    onchain ? api.distributions(round.id) : Promise.resolve(null),
+  ]);
   const chain = onchainResult?.ok ? onchainResult.data : null;
   const returns = returnsResult?.ok ? returnsResult.data : null;
   const distributions = distResult?.ok ? distResult.data : [];
-  const preview = previewResult.ok ? previewResult.data : null;
+  const report = reportResult.ok ? reportResult.data : null;
   const history = listOrEmpty(historyResult).items;
   const signals = listOrEmpty(signalsResult).items;
   const agents = listOrEmpty(agentsResult).items;
@@ -50,15 +58,30 @@ export default async function RoundPage({ params }: RoundPageProps) {
       <LifecycleStrip status={round.status} />
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="flex flex-col gap-4 lg:col-span-2">
-          <DdSection roundId={round.id} startupId={round.startupId} preview={preview} history={history} />
-          <SwarmPanel roundId={round.id} agents={agents} returnCapBps={round.returnCapBps} status={round.status} />
-          <ReturnsPanel returns={returns} distributions={distributions} chainId={round.investments[0]?.chainId ?? 0} />
+          <DdSection startupId={round.startupId} report={report} history={history} />
+          <SwarmPanel
+            roundId={round.id}
+            agents={agents}
+            returnCapBps={round.returnCapBps}
+            status={round.status}
+          />
+          <ReturnsPanel
+            returns={returns}
+            distributions={distributions}
+            chainId={round.investments[0]?.chainId ?? 0}
+          />
           <SignalsTable signals={signals} />
           <InvestmentsList investments={round.investments ?? []} agents={agents} />
         </div>
         <div className="flex flex-col gap-4">
           <OnchainPanel round={round} onchain={chain} />
-          {onchain && <OperatorActions round={round} releasedCount={chain?.releasedCount ?? 0} capUsdc={returns?.capUsdc ?? chain?.capUsdc ?? 0} />}
+          {onchain && (
+            <OperatorActions
+              round={round}
+              releasedCount={chain?.releasedCount ?? 0}
+              capUsdc={returns?.capUsdc ?? chain?.capUsdc ?? 0}
+            />
+          )}
           <X402Callout roundId={round.id} pricing={pricingResult.ok ? pricingResult.data : null} />
         </div>
       </div>

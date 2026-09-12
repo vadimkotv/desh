@@ -14,7 +14,8 @@ export function X402Callout({ roundId, pricing }: X402CalloutProps) {
     <Panel eyebrow="hedera · x402" title="Premium report paywall" tone="amber" action={<Badge tone="amber">HTTP 402</Badge>}>
       <p className="text-[12.5px] leading-relaxed text-fg">
         The full report (findings + raw signals) is x402-gated. Agents attach a Hedera payment to the request; the
-        facilitator settles it and the API releases the report. The dashboard never pays — it only shows receipts.
+        facilitator settles it and the API releases the report. After research completes, the dashboard renders the stored
+        result above without generating or purchasing it again.
       </p>
       <KeyValueList>
         <KeyValue label="price">{pricing?.premiumReportPrice ?? '—'}</KeyValue>

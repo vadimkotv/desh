@@ -1,4 +1,4 @@
-import type { Agent, CreateAgent } from '@agentipo/shared';
+import type { Agent, AgentStatus, CreateAgent } from '@agentipo/shared';
 
 export const AGENT_REPOSITORY = Symbol('AGENT_REPOSITORY');
 
@@ -26,4 +26,5 @@ export interface AgentRepository {
   setWallet(id: string, wallet: WalletProvision): Promise<AgentRecord>;
   setHederaAccount(id: string, accountId: string): Promise<AgentRecord>;
   setIdentity(id: string, identity: IdentityRef): Promise<AgentRecord>;
+  setStatus(id: string, status: AgentStatus): Promise<AgentRecord>;
 }

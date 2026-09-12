@@ -1,57 +1,47 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { useCallback, useState } from 'react';
-import { RunLive } from '@/components/live/run-live';
+import { useState } from 'react';
+import type { AgentStatus } from '@agentipo/shared';
 import { Button } from '@/components/ui/button';
 import { Panel } from '@/components/ui/panel';
+import { announceAgentRuntime } from '@/lib/agent-runtime-events';
 import { api } from '@/lib/api';
-import type { RunView } from '@/lib/run-state';
 
-type AgentConsoleProps = { agentId: string; agentName: string };
+type AgentConsoleProps = { agentId: string; initialStatus: AgentStatus };
 
-// "Run agent" → POST /agents/:id/runs → live stepper for that run; the page
-// refreshes once the run completes so the decisions timeline picks it up.
-export function AgentConsole({ agentId, agentName }: AgentConsoleProps) {
-  const router = useRouter();
-  const [runId, setRunId] = useState<string | null>(null);
+export function AgentConsole({ agentId, initialStatus }: AgentConsoleProps) {
+  const [status, setStatus] = useState(initialStatus);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const onView = useCallback(
-    (view: RunView) => {
-      if (view.status !== 'running') router.refresh();
-    },
-    [router],
-  );
 
-  async function start() {
+  async function toggle() {
     setBusy(true);
     setError(null);
-    const result = await api.startRun(agentId);
+    const result =
+      status === 'RUNNING' ? await api.pauseAgent(agentId) : await api.runAgent(agentId);
     setBusy(false);
     if (!result.ok) return setError(`${result.status || 'offline'} · ${result.error}`);
-    setRunId(result.data.runId);
+    setStatus(result.data.status);
+    announceAgentRuntime(result.data);
   }
 
   return (
     <Panel
-      eyebrow="pipeline · buy data → gate → policy → decide → settle"
-      title="Console"
+      eyebrow="autonomous runtime · discover → research → decide"
+      title={status === 'RUNNING' ? 'Running' : 'Paused'}
       tone="agent"
       action={
-        <Button variant="agent" busy={busy} onClick={start}>
-          ▶ {runId ? 'Run again' : 'Run agent'}
+        <Button variant={status === 'RUNNING' ? 'danger' : 'agent'} busy={busy} onClick={toggle}>
+          {status === 'RUNNING' ? 'Ⅱ Pause agent' : '▶ Run agent'}
         </Button>
       }
     >
       {error && <p className="mb-2 font-mono text-[11px] text-danger">{error}</p>}
-      {runId ? (
-        <RunLive runId={runId} agentName={agentName} onView={onView} />
-      ) : (
-        <p className="text-[12px] text-muted">
-          Runs the full loop over every open round in this agent’s sectors. Each step streams here as it happens.
-        </p>
-      )}
+      <p className="text-[12px] text-muted">
+        {status === 'RUNNING'
+          ? 'Watching for new open rounds in this mandate’s sectors. Matching startups are researched automatically in the background.'
+          : 'No new research will start while paused. Any evaluation already in progress is allowed to finish safely.'}
+      </p>
     </Panel>
   );
 }

@@ -6,6 +6,7 @@ import type { Agent } from '@agentipo/shared';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useWalletBalance } from '@/hooks/use-wallet-balance';
+import { announceAgentRuntime } from '@/lib/agent-runtime-events';
 import { api } from '@/lib/api';
 import { num, shortAddress } from '@/lib/format';
 
@@ -15,30 +16,53 @@ const riskTone = { conservative: 'info', balanced: 'accent', aggressive: 'amber'
 // and a per-agent Run button whose run then lights up in the live pipeline.
 export function AgentRow({ agent }: { agent: Agent }) {
   const balance = useWalletBalance(agent.walletAddress);
-  const [launch, setLaunch] = useState<'idle' | 'busy' | 'sent' | 'error'>('idle');
+  const [status, setStatus] = useState(agent.status);
+  const [launch, setLaunch] = useState<'idle' | 'busy' | 'error'>('idle');
   const { mandate } = agent;
 
-  async function run() {
+  async function toggle() {
     setLaunch('busy');
-    const result = await api.startRun(agent.id);
-    setLaunch(result.ok ? 'sent' : 'error');
-    setTimeout(() => setLaunch('idle'), 3500);
+    const result =
+      status === 'RUNNING' ? await api.pauseAgent(agent.id) : await api.runAgent(agent.id);
+    if (result.ok) {
+      setStatus(result.data.status);
+      announceAgentRuntime(result.data);
+      setLaunch('idle');
+    } else {
+      setLaunch('error');
+      window.setTimeout(() => setLaunch('idle'), 3500);
+    }
   }
 
   return (
     <article className="group flex flex-col gap-2 rounded-lg border border-line bg-panel/90 p-3 transition-colors hover:border-agent/40">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <Link href={`/agents/${agent.id}`} className="block truncate text-[13px] font-semibold text-bright group-hover:text-agent">
+          <Link
+            href={`/agents/${agent.id}`}
+            className="block truncate text-[13px] font-semibold text-bright group-hover:text-agent"
+          >
             {agent.name}
           </Link>
           <p className="mt-0.5 font-mono text-[10.5px] text-muted">
-            <Badge tone={riskTone[mandate.riskTolerance]} className="mr-1.5">{mandate.riskTolerance}</Badge>
+            <Badge tone={riskTone[mandate.riskTolerance]} className="mr-1.5">
+              {mandate.riskTolerance}
+            </Badge>
             min {mandate.minScore} · max {num(mandate.maxTicketUsdc)} USDC
           </p>
         </div>
-        <Button variant="agent" size="xs" busy={launch === 'busy'} onClick={run} title="POST /agents/:id/runs">
-          {launch === 'sent' ? '✓ queued' : launch === 'error' ? 'failed' : '▶ Run'}
+        <Button
+          variant={status === 'RUNNING' ? 'danger' : 'agent'}
+          size="xs"
+          busy={launch === 'busy'}
+          onClick={toggle}
+          title={
+            status === 'RUNNING'
+              ? 'Pause after the current evaluation'
+              : 'Run continuously and watch for new startups'
+          }
+        >
+          {launch === 'error' ? 'failed' : status === 'RUNNING' ? 'Ⅱ Pause' : '▶ Run'}
         </Button>
       </div>
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 font-mono text-[10.5px]">
@@ -46,12 +70,30 @@ export function AgentRow({ agent }: { agent: Agent }) {
           {agent.walletAddress ? shortAddress(agent.walletAddress) : 'wallet pending'}
         </span>
         <span className="num text-fg">
-          {balance.status === 'loading' ? <span className="text-dim">…</span> : balance.status === 'ok' && balance.usdc !== null ? `${num(balance.usdc)} USDC` : <span className="text-dim">— USDC</span>}
+          {balance.status === 'loading' ? (
+            <span className="text-dim">…</span>
+          ) : balance.status === 'ok' && balance.usdc !== null ? (
+            `${num(balance.usdc)} USDC`
+          ) : (
+            <span className="text-dim">— USDC</span>
+          )}
         </span>
       </div>
       <div className="flex flex-wrap gap-1">
-        {agent.erc8004AgentId ? <Badge tone="agent">ERC-8004 #{agent.erc8004AgentId}</Badge> : <Badge tone="neutral">ERC-8004 unregistered</Badge>}
-        {agent.hederaAccountId ? <Badge tone="amber">ℏ {agent.hederaAccountId}</Badge> : <Badge tone="neutral">no hedera</Badge>}
+        <Badge tone={status === 'RUNNING' ? 'agent' : 'neutral'}>
+          {status === 'RUNNING' && <span className="live-dot">●</span>}
+          {status === 'RUNNING' ? 'Running' : 'Paused'}
+        </Badge>
+        {agent.erc8004AgentId ? (
+          <Badge tone="agent">ERC-8004 #{agent.erc8004AgentId}</Badge>
+        ) : (
+          <Badge tone="neutral">ERC-8004 unregistered</Badge>
+        )}
+        {agent.hederaAccountId ? (
+          <Badge tone="amber">ℏ {agent.hederaAccountId}</Badge>
+        ) : (
+          <Badge tone="neutral">no hedera</Badge>
+        )}
         {agent.walletKind === 'CIRCLE' && <Badge tone="info">circle wallet</Badge>}
       </div>
     </article>

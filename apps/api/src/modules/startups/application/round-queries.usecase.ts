@@ -1,6 +1,10 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import type { RoundStatus, Startup } from '@agentipo/shared';
-import { ROUND_REPOSITORY, type RoundDetail, type RoundRepository } from '../domain/round.repository';
+import {
+  ROUND_REPOSITORY,
+  type RoundDetail,
+  type RoundRepository,
+} from '../domain/round.repository';
 import { STARTUP_REPOSITORY, type StartupRepository } from '../domain/startup.repository';
 
 // Read-side facade used by controllers and by other modules (data-room, agents).
@@ -35,11 +39,18 @@ export class RoundQueries {
     return this.rounds.findOpenBySectors(sectors);
   }
 
+  openUndecidedForAgent(sectors: string[], agentId: string): Promise<RoundDetail[]> {
+    return this.rounds.findOpenUndecidedByAgent(sectors, agentId);
+  }
+
   recordRaised(roundId: string, amountUsdc: number): Promise<void> {
     return this.rounds.addRaised(roundId, amountUsdc);
   }
 
-  syncOnchain(roundId: string, state: { status: RoundStatus; raisedUsdc: number; distributedUsdc: number }): Promise<void> {
+  syncOnchain(
+    roundId: string,
+    state: { status: RoundStatus; raisedUsdc: number; distributedUsdc: number },
+  ): Promise<void> {
     return this.rounds.syncOnchain(roundId, state);
   }
 }

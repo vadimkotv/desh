@@ -14,7 +14,11 @@ export interface RoundRepository {
   findById(id: string): Promise<RoundDetail | null>;
   findAll(status?: RoundStatus): Promise<RoundDetail[]>;
   findOpenBySectors(sectors: string[]): Promise<RoundDetail[]>;
+  findOpenUndecidedByAgent(sectors: string[], agentId: string): Promise<RoundDetail[]>;
   addRaised(id: string, amountUsdc: number): Promise<void>;
   setStatus(id: string, status: RoundStatus): Promise<void>;
-  syncOnchain(id: string, state: { status: RoundStatus; raisedUsdc: number; distributedUsdc: number }): Promise<void>;
+  syncOnchain(
+    id: string,
+    state: { status: RoundStatus; raisedUsdc: number; distributedUsdc: number },
+  ): Promise<void>;
 }

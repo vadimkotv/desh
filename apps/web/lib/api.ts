@@ -12,7 +12,8 @@ function errorMessage(body: string, fallback: string): string {
       // Contract reverts arrive as 409 { error: 'ContractRevert', reason, message } — the reason is the useful bit.
       const { reason, message } = parsed as { reason?: unknown; message?: unknown };
       if (typeof reason === 'string' && reason) return reason;
-      if (message !== undefined) return Array.isArray(message) ? message.join(', ') : String(message);
+      if (message !== undefined)
+        return Array.isArray(message) ? message.join(', ') : String(message);
     }
   } catch {
     // not JSON — fall through to raw text
@@ -50,7 +51,10 @@ export const api = {
   roundReturns: (id: string) => get<S.RoundReturns>(`/rounds/${id}/returns`),
   distributions: (id: string) => get<S.Distribution[]>(`/rounds/${id}/distributions`),
   ddPreview: (roundId: string) => get<S.DueDiligencePreview>(`/due-diligence/rounds/${roundId}`),
-  ddHistory: (roundId: string) => get<T.DdHistoryPoint[]>(`/due-diligence/rounds/${roundId}/history`),
+  ddReport: (roundId: string) =>
+    get<S.DueDiligenceReport>(`/due-diligence/rounds/${roundId}/report`),
+  ddHistory: (roundId: string) =>
+    get<T.DdHistoryPoint[]>(`/due-diligence/rounds/${roundId}/history`),
   signals: (startupId: string) => get<S.Signal[]>(`/data-room/startups/${startupId}/signals`),
   agents: () => get<S.Agent[]>('/agents'),
   agent: (id: string) => get<S.Agent>(`/agents/${id}`),
@@ -64,13 +68,17 @@ export const api = {
   onchainRound: (onchainId: number) => get<T.OnchainRound>(`/settlement/rounds/${onchainId}`),
   createAgent: (input: S.CreateAgent) => post<S.Agent>('/agents', input),
   registerIdentity: (id: string) => post<S.Agent>(`/agents/${id}/identity`),
+  runAgent: (id: string) => post<S.Agent>(`/agents/${id}/run`),
+  pauseAgent: (id: string) => post<S.Agent>(`/agents/${id}/pause`),
   startRun: (agentId: string, roundId?: string) =>
     post<T.RunHandle>(`/agents/${agentId}/runs${roundId ? `?roundId=${roundId}` : ''}`),
   swarm: (roundId: string) => post<T.SwarmResponse>(`/rounds/${roundId}/swarm`),
-  claim: (agentId: string, roundId: string) => post<T.ClaimResult>(`/agents/${agentId}/claim?roundId=${roundId}`),
+  claim: (agentId: string, roundId: string) =>
+    post<T.ClaimResult>(`/agents/${agentId}/claim?roundId=${roundId}`),
   finalizeRound: (id: string) => post<T.RoundDetail>(`/rounds/${id}/finalize`),
   releaseMilestone: (id: string) => post<T.RoundDetail>(`/rounds/${id}/milestones/release`),
-  distribute: (id: string, amountUsdc: number) => post<T.RoundDetail>(`/rounds/${id}/distribute`, { amountUsdc }),
+  distribute: (id: string, amountUsdc: number) =>
+    post<T.RoundDetail>(`/rounds/${id}/distribute`, { amountUsdc }),
   syncRound: (id: string) => post<T.RoundDetail>(`/rounds/${id}/sync`),
   refreshDataRoom: (startupId: string) => post<unknown>(`/data-room/startups/${startupId}/refresh`),
   generateReport: (roundId: string) =>

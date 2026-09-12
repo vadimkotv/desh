@@ -46,7 +46,13 @@ export default async function AgentPage({ params }: AgentPageProps) {
           <p className="eyebrow text-agent">agent console</p>
           <div className="mt-1 flex flex-wrap items-center gap-2">
             <h1 className="text-2xl font-semibold tracking-tight text-bright">{agent.name}</h1>
-            <Badge tone={riskTone[agent.mandate.riskTolerance]}>{agent.mandate.riskTolerance}</Badge>
+            <Badge tone={agent.status === 'RUNNING' ? 'agent' : 'neutral'}>
+              {agent.status === 'RUNNING' && <span className="live-dot">●</span>}
+              {agent.status === 'RUNNING' ? 'Running' : 'Paused'}
+            </Badge>
+            <Badge tone={riskTone[agent.mandate.riskTolerance]}>
+              {agent.mandate.riskTolerance}
+            </Badge>
           </div>
           <p className="mt-1 font-mono text-[10.5px] text-muted">
             id {agent.id} · created {formatDate(agent.createdAt)}
@@ -55,17 +61,40 @@ export default async function AgentPage({ params }: AgentPageProps) {
       </div>
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="flex flex-col gap-4 lg:col-span-2">
-          <AgentConsole agentId={agent.id} agentName={agent.name} />
+          <AgentConsole agentId={agent.id} initialStatus={agent.status} />
           <div className="grid gap-2 sm:grid-cols-3">
-            <StatTile label="Invested" value={usdc(invested)} hint={`${confirmed.length} confirmed tickets`} tone="accent" />
-            <StatTile label="Returns claimed" value={usdc(claimed)} hint={invested > 0 ? `${num((claimed / invested) * 100)}% of capital back` : 'no capital deployed'} tone="accent" />
-            <StatTile label="Decisions" value={num(decisions.length)} hint={`${decisions.filter((d) => d.action === 'INVEST').length} invest · ${decisions.filter((d) => d.action !== 'INVEST').length} pass/watch`} tone="agent" />
+            <StatTile
+              label="Invested"
+              value={usdc(invested)}
+              hint={`${confirmed.length} confirmed tickets`}
+              tone="accent"
+            />
+            <StatTile
+              label="Returns claimed"
+              value={usdc(claimed)}
+              hint={
+                invested > 0
+                  ? `${num((claimed / invested) * 100)}% of capital back`
+                  : 'no capital deployed'
+              }
+              tone="accent"
+            />
+            <StatTile
+              label="Decisions"
+              value={num(decisions.length)}
+              hint={`${decisions.filter((d) => d.action === 'INVEST').length} invest · ${decisions.filter((d) => d.action !== 'INVEST').length} pass/watch`}
+              tone="agent"
+            />
           </div>
           <DecisionTimeline decisions={decisions} roundNames={roundNames} roundCaps={roundCaps} />
         </div>
         <div className="flex flex-col gap-4">
           <IdentityPanel agent={agent} />
-          <AgentReturns agentId={agent.id} roundIds={roundIds} roundNames={Object.fromEntries(roundNames)} />
+          <AgentReturns
+            agentId={agent.id}
+            roundIds={roundIds}
+            roundNames={Object.fromEntries(roundNames)}
+          />
           <MandateCard mandate={agent.mandate} />
           <ReceiptsList receipts={receipts} />
         </div>
