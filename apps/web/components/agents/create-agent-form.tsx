@@ -1,6 +1,6 @@
 'use client';
 
-import { WalletKind } from '@agentipo/shared';
+import { AgentMode, WalletKind } from '@agentipo/shared';
 import { InlineStatus } from '@/components/ui/action-button';
 import { Button } from '@/components/ui/button';
 import { Panel } from '@/components/ui/panel';
@@ -21,8 +21,11 @@ export function CreateAgentForm() {
         <Field label="owner address" hint="EVM">
           <Input name="ownerAddress" placeholder="0x…" required />
         </Field>
-        <Field label="wallet kind" className="sm:col-span-2">
+        <Field label="wallet kind">
           <Select name="walletKind" options={WalletKind.options} defaultValue="LOCAL_KEY" />
+        </Field>
+        <Field label="mode" hint="advisory = a human approves every ticket">
+          <Select name="mode" options={AgentMode.options} defaultValue="AUTONOMOUS" />
         </Field>
         <MandateFields />
         <div className="flex flex-wrap items-center gap-3 sm:col-span-2">

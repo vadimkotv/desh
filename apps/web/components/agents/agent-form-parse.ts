@@ -15,6 +15,7 @@ export function parseAgentForm(data: FormData): ParsedAgentForm {
     name: text(data, 'name'),
     ownerAddress: text(data, 'ownerAddress'),
     walletKind: text(data, 'walletKind'),
+    mode: text(data, 'mode'),
     mandate: {
       thesis: text(data, 'thesis'),
       sectors: text(data, 'sectors')

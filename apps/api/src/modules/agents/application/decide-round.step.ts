@@ -1,14 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import type { DecisionVerdict, DueDiligenceReport } from '@agentipo/shared';
 import { Agent0Client } from '../../data-room/infrastructure/graph-agent0/agent0.client';
-import { evaluateSpend } from '../../settlement/domain/spending-policy';
-import { SubmitInvestmentUseCase } from '../../settlement/application/submit-investment.usecase';
-import { WalletBalanceQuery } from '../../settlement/application/wallet-balance.query';
 import type { RoundDetail } from '../../startups/domain/round.repository';
 import type { AgentRecord } from '../domain/agent.repository';
 import { mandateGate } from '../domain/mandate.gate';
 import { NOOP_REPORTER, type RunReporter } from '../domain/run-reporter';
 import { DecisionEngineResolver } from '../infrastructure/engines/decision-engine.resolver';
+import { SpendCeiling } from './spend-ceiling.service';
 
 export interface RoundVerdict extends DecisionVerdict {
   engine: string;
@@ -22,8 +20,7 @@ export class DecideRoundStep {
 
   constructor(
     private readonly engines: DecisionEngineResolver,
-    private readonly investments: SubmitInvestmentUseCase,
-    private readonly balances: WalletBalanceQuery,
+    private readonly ceiling: SpendCeiling,
     private readonly agent0: Agent0Client,
   ) {}
 
@@ -34,13 +31,7 @@ export class DecideRoundStep {
       return { engine: 'mandate-gate', action: 'PASS', amountUsdc: 0, confidence: 1, reasoning: gate.reason, keyRisks: [] };
     }
 
-    const spend = evaluateSpend({
-      mandate: agent.mandate,
-      round,
-      proposedUsdc: agent.mandate.maxTicketUsdc,
-      spentTodayUsdc: await this.investments.spentToday(agent.id),
-      walletBalanceUsdc: await this.balanceOf(agent),
-    });
+    const spend = await this.ceiling.evaluate(agent, round);
     reporter.emit('policy.evaluated', { allowed: spend.allowed, ceilingUsdc: spend.amountUsdc, reason: spend.reason });
     if (!spend.allowed) {
       return { engine: 'spending-policy', action: 'WATCH', amountUsdc: 0, confidence: 1, reasoning: spend.reason, keyRisks: [] };
@@ -56,16 +47,6 @@ export class DecideRoundStep {
     const bounded = { ...verdict, action, amountUsdc: action === 'INVEST' ? amountUsdc : 0, engine: engine.name };
     reporter.emit('engine.decided', { action, amountUsdc: bounded.amountUsdc, confidence: verdict.confidence, engine: engine.name, reasoning: verdict.reasoning, keyRisks: verdict.keyRisks });
     return bounded;
-  }
-
-  private async balanceOf(agent: AgentRecord): Promise<number | undefined> {
-    if (!agent.walletAddress) return undefined;
-    try {
-      return await this.balances.usdcBalance(agent.walletAddress);
-    } catch (err) {
-      this.log.warn(`balance read failed for ${agent.walletAddress}: ${(err as Error).message}`);
-      return undefined;
-    }
   }
 
   private async reputationOf(agent: AgentRecord) {

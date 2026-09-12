@@ -14,6 +14,12 @@ export function auditSummary(entry: AuditEntry): string {
       return `bought premium report${s(p.txId) ? ` · tx ${s(p.txId)}` : ''}`;
     case 'DECISION_MADE':
       return `${s(p.action)}${n(p.amountUsdc) > 0 ? ` ${num(n(p.amountUsdc))} USDC` : ''} via ${s(p.engine) || 'engine'}`;
+    case 'APPROVAL_REQUESTED':
+      return `✋ ${num(n(p.amountUsdc))} USDC proposed — waiting on a human`;
+    case 'DECISION_APPROVED':
+      return `✓ ${s(p.approvedBy)} approved ${num(n(p.amountUsdc))} USDC`;
+    case 'DECISION_REJECTED':
+      return `✕ ${s(p.approvedBy)} rejected ${num(n(p.amountUsdc))} USDC`;
     case 'INVESTMENT_SUBMITTED':
       return `submitted ${num(n(p.amountUsdc))} USDC to escrow`;
     case 'INVESTMENT_CONFIRMED':

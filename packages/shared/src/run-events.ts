@@ -15,6 +15,7 @@ export const RunEventType = z.enum([
   'policy.evaluated',
   'engine.deciding',
   'engine.decided',
+  'approval.requested',
   'settlement.submitted',
   'settlement.confirmed',
   'settlement.failed',

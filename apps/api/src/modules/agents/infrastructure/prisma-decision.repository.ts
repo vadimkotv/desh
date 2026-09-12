@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { Decision } from '@agentipo/shared';
+import type { ApprovalState, Decision } from '@agentipo/shared';
 import { asJson } from '../../../common/prisma/json';
 import { PrismaService } from '../../../common/prisma/prisma.service';
 import type { DecisionRepository, NewDecision } from '../domain/decision.repository';
@@ -24,6 +24,7 @@ export class PrismaDecisionRepository implements DecisionRepository {
         keyRisks: asJson(input.keyRisks),
         engine: input.engine,
         dataPaymentTxId: input.dataPaymentTxId,
+        approval: input.approval,
       },
       include,
     });
@@ -43,5 +44,19 @@ export class PrismaDecisionRepository implements DecisionRepository {
   async listAll(limit = 100): Promise<Decision[]> {
     const rows = await this.prisma.decision.findMany({ include, orderBy: { createdAt: 'desc' }, take: limit });
     return rows.map(toDecision);
+  }
+
+  async listPending(): Promise<Decision[]> {
+    const rows = await this.prisma.decision.findMany({ where: { approval: 'PENDING' }, include, orderBy: { createdAt: 'desc' } });
+    return rows.map(toDecision);
+  }
+
+  async resolve(id: string, approval: ApprovalState, approvedBy: string): Promise<Decision> {
+    const row = await this.prisma.decision.update({
+      where: { id },
+      data: { approval, approvedBy, decidedAt: new Date() },
+      include,
+    });
+    return toDecision(row);
   }
 }

@@ -1,22 +1,20 @@
 import { notFound } from 'next/navigation';
 import { AgentConsole } from '@/components/agents/agent-console';
+import { AgentHeader } from '@/components/agents/agent-header';
 import { AgentReturns } from '@/components/agents/agent-returns';
 import { StatTile } from '@/components/charts/stat-tile';
 import { DecisionTimeline } from '@/components/agents/decision-timeline';
 import { IdentityPanel } from '@/components/agents/identity-panel';
 import { MandateCard } from '@/components/agents/mandate-card';
 import { ReceiptsList } from '@/components/agents/receipts-list';
-import { Badge } from '@/components/ui/badge';
 import { ApiOffline } from '@/components/ui/empty-state';
 import { api, listOrEmpty } from '@/lib/api';
-import { formatDate, num, usdc } from '@/lib/format';
+import { num, usdc } from '@/lib/format';
 import { isOffline } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
 
 type AgentPageProps = { params: Promise<{ id: string }> };
-
-const riskTone = { conservative: 'info', balanced: 'accent', aggressive: 'amber' } as const;
 
 export default async function AgentPage({ params }: AgentPageProps) {
   const { id } = await params;
@@ -41,24 +39,7 @@ export default async function AgentPage({ params }: AgentPageProps) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="eyebrow text-agent">agent console</p>
-          <div className="mt-1 flex flex-wrap items-center gap-2">
-            <h1 className="text-2xl font-semibold tracking-tight text-bright">{agent.name}</h1>
-            <Badge tone={agent.status === 'RUNNING' ? 'agent' : 'neutral'}>
-              {agent.status === 'RUNNING' && <span className="live-dot">●</span>}
-              {agent.status === 'RUNNING' ? 'Running' : 'Paused'}
-            </Badge>
-            <Badge tone={riskTone[agent.mandate.riskTolerance]}>
-              {agent.mandate.riskTolerance}
-            </Badge>
-          </div>
-          <p className="mt-1 font-mono text-[10.5px] text-muted">
-            id {agent.id} · created {formatDate(agent.createdAt)}
-          </p>
-        </div>
-      </div>
+      <AgentHeader agent={agent} />
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="flex flex-col gap-4 lg:col-span-2">
           <AgentConsole agentId={agent.id} initialStatus={agent.status} />

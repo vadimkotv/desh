@@ -32,6 +32,18 @@ enum AgentStatus {
   RUNNING
 }
 
+enum AgentMode {
+  AUTONOMOUS
+  ADVISORY
+}
+
+enum ApprovalState {
+  NOT_REQUIRED
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 enum DecisionAction {
   INVEST
   PASS

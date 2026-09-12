@@ -1,3 +1,4 @@
+import { ApprovalQueue } from '@/components/command/approval-queue';
 import { KpiStrip } from '@/components/command/kpi-strip';
 import { LiveRefresh } from '@/components/command/live-refresh';
 import { ReviewFeed } from '@/components/command/review-feed';
@@ -8,13 +9,15 @@ import { api, listOrEmpty } from '@/lib/api';
 export const dynamic = 'force-dynamic';
 
 export default async function CommandCenterPage() {
-  const [statsResult, roundsResult, agentsResult, receiptsResult, feedResult] = await Promise.all([
-    api.stats(),
-    api.rounds(),
-    api.agents(),
-    api.receipts(),
-    api.reviewFeed(),
-  ]);
+  const [statsResult, roundsResult, agentsResult, receiptsResult, feedResult, pendingResult] =
+    await Promise.all([
+      api.stats(),
+      api.rounds(),
+      api.agents(),
+      api.receipts(),
+      api.reviewFeed(),
+      api.pendingDecisions(),
+    ]);
   const rounds = listOrEmpty(roundsResult);
   const agents = listOrEmpty(agentsResult);
   const receipts = listOrEmpty(receiptsResult);
@@ -27,6 +30,7 @@ export default async function CommandCenterPage() {
     return round ? [{ ...item, round }] : [];
   });
   const investments = rounds.items.flatMap((round) => round.investments ?? []);
+  const proposals = listOrEmpty(pendingResult).items;
 
   return (
     <div className="flex flex-col gap-4">
@@ -40,6 +44,11 @@ export default async function CommandCenterPage() {
             stats={statsResult.ok ? statsResult.data : null}
             investments={investments}
             receipts={receipts.items}
+          />
+          <ApprovalQueue
+            proposals={proposals}
+            rounds={byId}
+            agents={new Map(agents.items.map((agent) => [agent.id, agent]))}
           />
           <ReviewFeed
             items={items}

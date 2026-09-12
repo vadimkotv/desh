@@ -18,6 +18,7 @@ export const toAgentRecord = (a: DbAgent): AgentRecord => ({
   erc8004AgentId: a.erc8004AgentId,
   erc8004ChainId: a.erc8004ChainId,
   status: a.status,
+  mode: a.mode,
   mandate: a.mandate as Mandate,
   createdAt: a.createdAt.toISOString(),
   keyIndex: a.keyIndex,
@@ -36,6 +37,9 @@ export const toDecision = (d: DbDecision & { investment: DbInvestment | null }):
   keyRisks: d.keyRisks as string[],
   engine: d.engine,
   dataPaymentTxId: d.dataPaymentTxId,
+  approval: d.approval,
+  approvedBy: d.approvedBy,
+  decidedAt: d.decidedAt?.toISOString() ?? null,
   investment: d.investment ? toInvestment(d.investment) : null,
   createdAt: d.createdAt.toISOString(),
 });

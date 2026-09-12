@@ -15,6 +15,11 @@ export const MandateSchema = z.object({
 });
 export type Mandate = z.infer<typeof MandateSchema>;
 
+// How far an agent may act on its own conclusions. AUTONOMOUS settles USDC itself;
+// ADVISORY does the same research and files a proposal a human has to approve.
+export const AgentMode = z.enum(['AUTONOMOUS', 'ADVISORY']);
+export type AgentMode = z.infer<typeof AgentMode>;
+
 export const WalletKind = z.enum(['LOCAL_KEY', 'CIRCLE']);
 export type WalletKind = z.infer<typeof WalletKind>;
 
@@ -25,6 +30,7 @@ export const CreateAgentSchema = z.object({
   name: z.string().min(2).max(60),
   ownerAddress: evmAddress,
   walletKind: WalletKind.default('LOCAL_KEY'),
+  mode: AgentMode.default('AUTONOMOUS'),
   mandate: MandateSchema,
 });
 export type CreateAgent = z.infer<typeof CreateAgentSchema>;
@@ -39,6 +45,7 @@ export const AgentSchema = z.object({
   erc8004AgentId: z.string().nullable(),
   erc8004ChainId: z.number().nullable(),
   status: AgentStatus,
+  mode: AgentMode,
   mandate: MandateSchema,
   createdAt: z.string(),
 });

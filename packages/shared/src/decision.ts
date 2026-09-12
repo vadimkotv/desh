@@ -14,6 +14,11 @@ export const DecisionVerdictSchema = z.object({
 });
 export type DecisionVerdict = z.infer<typeof DecisionVerdictSchema>;
 
+// Whether a human still has to sign off before money moves. An AUTONOMOUS agent's
+// decisions are NOT_REQUIRED; an ADVISORY agent's INVEST decisions land as PENDING.
+export const ApprovalState = z.enum(['NOT_REQUIRED', 'PENDING', 'APPROVED', 'REJECTED']);
+export type ApprovalState = z.infer<typeof ApprovalState>;
+
 export const InvestmentStatus = z.enum(['PENDING', 'CONFIRMED', 'FAILED']);
 export type InvestmentStatus = z.infer<typeof InvestmentStatus>;
 
@@ -38,7 +43,15 @@ export const DecisionSchema = DecisionVerdictSchema.extend({
   reportId: z.string().uuid().nullable(),
   engine: z.string(),
   dataPaymentTxId: z.string().nullable(),
+  approval: ApprovalState,
+  approvedBy: z.string().nullable(),
+  decidedAt: z.string().nullable(), // when a human approved or rejected it
   investment: InvestmentSchema.nullable(),
   createdAt: z.string(),
 });
 export type Decision = z.infer<typeof DecisionSchema>;
+
+export const ApproveDecisionSchema = z.object({
+  approvedBy: z.string().min(1).max(120).default('operator'),
+});
+export type ApproveDecision = z.infer<typeof ApproveDecisionSchema>;

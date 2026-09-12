@@ -1,12 +1,14 @@
-import type { Mandate } from '@agentipo/shared';
+import type { AgentMode, Mandate } from '@agentipo/shared';
 
 export interface DemoAgent {
   name: string;
   ownerAddress: string;
+  mode?: AgentMode;
   mandate: Mandate;
 }
 
-// Three mandates that deliberately disagree on the same round — the "swarm" demo.
+// Three mandates that deliberately disagree on the same round — the "swarm" demo —
+// plus one advisory agent that researches identically but waits for a human.
 export const DEMO_AGENTS: DemoAgent[] = [
   {
     name: 'Sentinel (conservative)',
@@ -48,6 +50,21 @@ export const DEMO_AGENTS: DemoAgent[] = [
       dailyBudgetUsdc: 1_000,
       maxDataSpendUsdc: 2,
       riskTolerance: 'aggressive',
+    },
+  },
+  {
+    name: 'Atlas (human-in-the-loop)',
+    ownerAddress: '0xD4D4D4D4D4D4D4D4D4D4D4D4D4D4D4D4D4D4D4D4',
+    mode: 'ADVISORY',
+    mandate: {
+      thesis: 'Do the full diligence autonomously, then hand a sized, argued ticket to a human. Never move capital alone.',
+      sectors: ['defi', 'ai', 'fintech'],
+      minScore: 55,
+      maxTicketUsdc: 300,
+      maxPerRoundShareBps: 4_000,
+      dailyBudgetUsdc: 800,
+      maxDataSpendUsdc: 1,
+      riskTolerance: 'balanced',
     },
   },
 ];

@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Collapsible } from '@/components/ui/collapsible';
 import { ConfidenceBar } from '@/components/ui/confidence-bar';
 import { ExternalLink } from '@/components/ui/external-link';
+import { RiskList } from '@/components/ui/risk-list';
 import { bpsShare, equityShareBps, formatDate, shortAddress, shortId, usdc } from '@/lib/format';
 import { hederaTxUrl, settlementTxUrl } from '@/lib/links';
 
@@ -59,13 +60,7 @@ export function DecisionItem({ decision, roundName, round }: DecisionItemProps) 
         <Collapsible label="reasoning">
           <p className="whitespace-pre-wrap text-[12.5px] leading-relaxed text-fg">{decision.reasoning}</p>
         </Collapsible>
-        {decision.keyRisks.length > 0 && (
-          <ul className="flex flex-wrap gap-1">
-            {decision.keyRisks.map((risk) => (
-              <li key={risk} className="rounded-sm border border-danger/30 bg-danger/5 px-1.5 py-[1px] font-mono text-[10px] text-danger">⚠ {risk}</li>
-            ))}
-          </ul>
-        )}
+        <RiskList risks={decision.keyRisks} />
       </article>
     </li>
   );

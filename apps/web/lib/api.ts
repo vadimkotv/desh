@@ -61,6 +61,7 @@ export const api = {
   agent: (id: string) => get<S.Agent>(`/agents/${id}`),
   agentDecisions: (id: string) => get<S.Decision[]>(`/agents/${id}/decisions`),
   decisions: () => get<S.Decision[]>('/decisions'),
+  pendingDecisions: () => get<S.Decision[]>('/decisions/pending'),
   audit: () => get<S.AuditEntry[]>('/audit'),
   runs: (limit = 8) => get<S.RunEvent[][]>(`/runs?limit=${limit}`),
   receipts: () => get<T.Receipt[]>('/payments/receipts'),
@@ -74,6 +75,8 @@ export const api = {
   startRun: (agentId: string, roundId?: string) =>
     post<T.RunHandle>(`/agents/${agentId}/runs${roundId ? `?roundId=${roundId}` : ''}`),
   swarm: (roundId: string) => post<T.SwarmResponse>(`/rounds/${roundId}/swarm`),
+  approveDecision: (id: string) => post<S.Decision>(`/decisions/${id}/approve`, { approvedBy: 'operator' }),
+  rejectDecision: (id: string) => post<S.Decision>(`/decisions/${id}/reject`, { approvedBy: 'operator' }),
   claim: (agentId: string, roundId: string) =>
     post<T.ClaimResult>(`/agents/${agentId}/claim?roundId=${roundId}`),
   finalizeRound: (id: string) => post<T.RoundDetail>(`/rounds/${id}/finalize`),

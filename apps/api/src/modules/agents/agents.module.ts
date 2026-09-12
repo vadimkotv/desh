@@ -8,6 +8,7 @@ import { StartupsModule } from '../startups/startups.module';
 import { AcquireReportStep } from './application/acquire-report.step';
 import { AgentRuntimeService } from './application/agent-runtime.service';
 import { AgentQueries } from './application/agent-queries.usecase';
+import { ApproveDecisionUseCase } from './application/approve-decision.usecase';
 import { CreateAgentUseCase } from './application/create-agent.usecase';
 import { DecideRoundStep } from './application/decide-round.step';
 import { ExecuteDecisionStep } from './application/execute-decision.step';
@@ -16,6 +17,8 @@ import { RunAgentUseCase } from './application/run-agent.usecase';
 import { RunEventBus } from './application/run-event.bus';
 import { ReviewFeedQuery } from './application/review-feed.query';
 import { RunRoundStep } from './application/run-round.step';
+import { SettleDecisionStep } from './application/settle-decision.step';
+import { SpendCeiling } from './application/spend-ceiling.service';
 import { AGENT_REPOSITORY } from './domain/agent.repository';
 import { DECISION_ENGINES } from './domain/decision-engine.port';
 import { DECISION_REPOSITORY } from './domain/decision.repository';
@@ -42,6 +45,9 @@ import { RunsController } from './presentation/runs.controller';
     AcquireReportStep,
     DecideRoundStep,
     ExecuteDecisionStep,
+    SettleDecisionStep,
+    SpendCeiling,
+    ApproveDecisionUseCase,
     RunEventBus,
     RunAgentUseCase,
     RunRoundStep,

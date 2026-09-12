@@ -1,5 +1,6 @@
 import { ActionPill } from '@/components/ui/action-pill';
 import { ConfidenceBar } from '@/components/ui/confidence-bar';
+import { RiskList } from '@/components/ui/risk-list';
 import { bpsShare, num } from '@/lib/format';
 import type { RunDecision } from '@/lib/run-state';
 
@@ -22,15 +23,7 @@ export function DecisionBlock({ decision }: { decision: RunDecision }) {
         <ConfidenceBar confidence={decision.confidence} />
       </div>
       <p className="typewriter mt-1.5 text-[11.5px] leading-relaxed text-fg">{decision.reasoning}</p>
-      {decision.keyRisks.length > 0 && (
-        <ul className="mt-1.5 flex flex-wrap gap-1">
-          {decision.keyRisks.map((risk) => (
-            <li key={risk} className="rounded-sm border border-danger/30 bg-danger/5 px-1.5 py-[1px] font-mono text-[10px] text-danger">
-              ⚠ {risk}
-            </li>
-          ))}
-        </ul>
-      )}
+      <RiskList risks={decision.keyRisks} className="mt-1.5" />
     </div>
   );
 }

@@ -11,6 +11,7 @@ model Agent {
   erc8004ChainId  Int?
   erc8004TxHash   String?
   status          AgentStatus  @default(PAUSED)
+  mode            AgentMode    @default(AUTONOMOUS)
   mandate         Json
   createdAt       DateTime     @default(now())
   decisions       Decision[]
@@ -34,10 +35,14 @@ model Decision {
   keyRisks        Json
   engine          String
   dataPaymentTxId String?
+  approval        ApprovalState       @default(NOT_REQUIRED)
+  approvedBy      String?
+  decidedAt       DateTime?
   investment      Investment?
   createdAt       DateTime            @default(now())
 
   @@index([agentId, createdAt])
+  @@index([approval, createdAt])
 }
 
 model Investment {

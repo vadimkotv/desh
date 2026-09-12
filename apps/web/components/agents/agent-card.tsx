@@ -27,6 +27,12 @@ export function AgentCard({ agent }: { agent: Agent }) {
             {agent.status === 'RUNNING' ? 'Running' : 'Paused'}
           </Badge>
           <Badge tone={riskTone[agent.mandate.riskTolerance]}>{agent.mandate.riskTolerance}</Badge>
+          <Badge
+            tone={agent.mode === 'ADVISORY' ? 'amber' : 'accent'}
+            title={agent.mode === 'ADVISORY' ? 'researches on its own, a human approves every ticket' : 'settles its own tickets within the mandate'}
+          >
+            {agent.mode === 'ADVISORY' ? '✋ advisory' : '⚡ autonomous'}
+          </Badge>
         </div>
       </div>
       <p className="line-clamp-2 text-[12px] italic leading-relaxed text-muted">

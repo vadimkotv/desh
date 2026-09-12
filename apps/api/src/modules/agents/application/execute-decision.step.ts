@@ -1,28 +1,29 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { Decision } from '@agentipo/shared';
 import { AUDIT_LOG, type AuditLog } from '../../audit/domain/audit.port';
-import { SubmitInvestmentUseCase } from '../../settlement/application/submit-investment.usecase';
-import { RoundQueries } from '../../startups/application/round-queries.usecase';
 import type { RoundDetail } from '../../startups/domain/round.repository';
 import type { AgentRecord } from '../domain/agent.repository';
+import { approvalFor } from '../domain/approval.policy';
 import { DECISION_REPOSITORY, type DecisionRepository } from '../domain/decision.repository';
 import type { AcquiredReport } from './acquire-report.step';
 import type { RoundVerdict } from './decide-round.step';
+import { SettleDecisionStep } from './settle-decision.step';
 import { NOOP_REPORTER, type RunReporter } from '../domain/run-reporter';
 
-// Step 3: persist the decision, then (for INVEST) settle USDC into the Arc escrow and
-// mirror every state change to the audit log / HCS.
+// Step 3: persist the decision, then either settle it (AUTONOMOUS) or file it as a
+// proposal for a human to approve (ADVISORY). An ADVISORY agent does the identical
+// research and spends the same data budget — it just never moves capital by itself.
 @Injectable()
 export class ExecuteDecisionStep {
   constructor(
     @Inject(DECISION_REPOSITORY) private readonly decisions: DecisionRepository,
     @Inject(AUDIT_LOG) private readonly audit: AuditLog,
-    private readonly investments: SubmitInvestmentUseCase,
-    private readonly rounds: RoundQueries,
+    private readonly settle: SettleDecisionStep,
   ) {}
 
   async run(agent: AgentRecord, round: RoundDetail, acquired: AcquiredReport, verdict: RoundVerdict, reporter: RunReporter = NOOP_REPORTER): Promise<Decision> {
     const { engine, ...rest } = verdict;
+    const approval = approvalFor(agent.mode, verdict.action);
     const decision = await this.decisions.create({
       ...rest,
       agentId: agent.id,
@@ -30,31 +31,22 @@ export class ExecuteDecisionStep {
       reportId: acquired.report.id,
       engine,
       dataPaymentTxId: acquired.paymentTxId,
+      approval,
     });
     await this.audit.record(
       'DECISION_MADE',
-      { decisionId: decision.id, roundId: round.id, action: decision.action, amountUsdc: decision.amountUsdc, engine, reasoning: decision.reasoning },
+      { decisionId: decision.id, roundId: round.id, action: decision.action, amountUsdc: decision.amountUsdc, engine, approval, reasoning: decision.reasoning },
       agent.id,
     );
+
+    if (approval === 'PENDING') {
+      reporter.emit('approval.requested', { decisionId: decision.id, amountUsdc: decision.amountUsdc, agent: agent.name });
+      await this.audit.record('APPROVAL_REQUESTED', { decisionId: decision.id, roundId: round.id, amountUsdc: decision.amountUsdc }, agent.id);
+      return decision;
+    }
     if (decision.action !== 'INVEST' || !agent.walletAddress) return decision;
 
-    await this.audit.record('INVESTMENT_SUBMITTED', { decisionId: decision.id, amountUsdc: decision.amountUsdc }, agent.id);
-    reporter.emit('settlement.submitted', { decisionId: decision.id, amountUsdc: decision.amountUsdc, wallet: agent.walletAddress, kind: agent.walletKind });
-    const investment = await this.investments.execute({
-      decisionId: decision.id,
-      agentId: agent.id,
-      roundId: round.id,
-      onchainRoundId: round.onchainRoundId,
-      amountUsdc: decision.amountUsdc,
-      wallet: { kind: agent.walletKind, address: agent.walletAddress, keyIndex: agent.keyIndex, circleWalletId: agent.circleWalletId },
-    });
-    if (investment.status === 'CONFIRMED') await this.rounds.recordRaised(round.id, investment.amountUsdc);
-    reporter.emit(investment.status === 'CONFIRMED' ? 'settlement.confirmed' : 'settlement.failed', { investmentId: investment.id, txHash: investment.txHash, chainId: investment.chainId, amountUsdc: investment.amountUsdc, error: investment.error });
-    await this.audit.record(
-      investment.status === 'CONFIRMED' ? 'INVESTMENT_CONFIRMED' : 'INVESTMENT_FAILED',
-      { decisionId: decision.id, investmentId: investment.id, txHash: investment.txHash, chainId: investment.chainId, error: investment.error },
-      agent.id,
-    );
+    const investment = await this.settle.run(agent, round, decision, decision.amountUsdc, reporter);
     return { ...decision, investment };
   }
 }

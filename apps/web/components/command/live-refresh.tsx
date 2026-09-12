@@ -10,7 +10,14 @@ import { subscribeRunEvents } from '@/lib/sse';
 // startups and fresh verdicts appear without anyone touching reload.
 const SETTLE_MS = 900;
 
-const TRIGGERS = new Set(['round.done', 'round.failed', 'settlement.confirmed', 'agent.started', 'agent.paused']);
+const TRIGGERS = new Set([
+  'round.done',
+  'round.failed',
+  'settlement.confirmed',
+  'approval.requested',
+  'agent.started',
+  'agent.paused',
+]);
 
 export function LiveRefresh() {
   const router = useRouter();
