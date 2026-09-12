@@ -4,6 +4,7 @@ import { StartupsModule } from '../startups/startups.module';
 import { CollectDataRoomUseCase } from './application/collect-data-room.usecase';
 import { DataAccessUseCase } from './application/data-access.usecase';
 import { DiscloseMetricsQuery } from './application/disclose-metrics.query';
+import { GrowthSignalsQuery } from './application/growth-signals.query';
 import { LatestSignalsQuery } from './application/latest-signals.query';
 import { DATA_PROVIDERS, type DataProvider } from './domain/data-provider.port';
 import { ACCESS_REQUEST_REPOSITORY, FOUNDER_METRIC_REPOSITORY } from './domain/founder-metric.repository';
@@ -32,6 +33,7 @@ import { DataRoomController } from './presentation/data-room.controller';
     CollectDataRoomUseCase,
     LatestSignalsQuery,
     DiscloseMetricsQuery,
+    GrowthSignalsQuery,
     DataAccessUseCase,
     { provide: SNAPSHOT_REPOSITORY, useClass: PrismaSnapshotRepository },
     { provide: FOUNDER_METRIC_REPOSITORY, useClass: PrismaFounderMetricRepository },
@@ -42,6 +44,13 @@ import { DataRoomController } from './presentation/data-room.controller';
       useFactory: (...providers: DataProvider[]) => providers,
     },
   ],
-  exports: [LatestSignalsQuery, CollectDataRoomUseCase, Agent0Client, DiscloseMetricsQuery, DataAccessUseCase],
+  exports: [
+    LatestSignalsQuery,
+    CollectDataRoomUseCase,
+    Agent0Client,
+    DiscloseMetricsQuery,
+    GrowthSignalsQuery,
+    DataAccessUseCase,
+  ],
 })
 export class DataRoomModule {}

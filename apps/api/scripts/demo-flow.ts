@@ -1,8 +1,9 @@
 import 'dotenv/config';
-import { api, log, money, sleep } from './demo-flow.lib';
+import { api, approveProposals, log, money, swarmUntilFunded } from './demo-flow.lib';
 
 // The whole AgentIPO story over HTTP, end to end:
-//   round → swarm (agents buy data, decide, settle) → finalize → milestones → exit → claims.
+//   round → swarm (research, decide, settle) → human approves the advisory ticket →
+//   finalize → milestones → exit → claims.
 // Usage: pnpm --filter @agentipo/api demo:flow [targetUsdc=20] [proceedsUsdc=target*6]
 // (seeded mandates cap each agent at 30–50% of a round, so a small target lets one swarm fill it)
 const target = Number(process.argv[2] ?? 20);
@@ -14,7 +15,7 @@ async function main(): Promise<void> {
   const startup = startups.find((s) => s.sector === 'defi') ?? startups[0];
   if (!startup) throw new Error('seed the database first: pnpm db:seed');
 
-  log('1/6', `creating round for ${startup.name}: ${money(target)} for ${EQUITY_BPS / 100}% of the company`);
+  log('1/7', `creating round for ${startup.name}: ${money(target)} for ${EQUITY_BPS / 100}% of the company`);
   const round = await api<{ id: string; onchainRoundId: number | null }>('POST', '/rounds', {
     startupId: startup.id,
     targetUsdc: target,
@@ -25,34 +26,30 @@ async function main(): Promise<void> {
   });
   if (round.onchainRoundId === null) throw new Error('round has no escrow — configure ARC_* first');
 
-  log('2/6', 'swarm waves: every agent buys the report over x402, decides and settles');
-  let raised = 0;
-  for (let wave = 1; wave <= 3 && raised < target; wave++) {
-    const { runs } = await api<{ runs: { agentName: string }[] }>('POST', `/rounds/${round.id}/swarm`);
-    await sleep(12_000);
-    raised = (await api<{ raisedUsdc: number }>('GET', `/rounds/${round.id}`)).raisedUsdc;
-    log('   ', `wave ${wave}: ${runs.length} agents ran → raised ${money(raised)} of ${money(target)}`);
-  }
-  const decisions = await api<{ agentId: string; roundId: string; action: string; amountUsdc: number }[]>('GET', '/decisions');
-  for (const d of decisions.filter((d) => d.roundId === round.id)) log('   ', `${d.agentId.slice(0, 8)} ${d.action} ${money(d.amountUsdc)}`);
+  log('2/7', 'swarm: every agent researches the round, sizes a ticket and settles it');
+  await swarmUntilFunded(round.id, target);
 
-  log('3/6', 'finalize (target met → Funded)');
+  log('3/7', 'advisory agent: a human approves the ticket it proposed');
+  const approved = await approveProposals(round.id);
+  if (approved === 0) log('   ', 'no proposals this run (no advisory agent matched the mandate)');
+
+  log('4/7', 'finalize (target met → Funded)');
   const funded = await api<{ status: string; raisedUsdc: number }>('POST', `/rounds/${round.id}/finalize`);
   log('   ', `status ${funded.status}, raised ${money(funded.raisedUsdc)}`);
 
-  log('4/6', 'release both milestones to the founder');
+  log('5/7', 'release both milestones to the founder');
   await api('POST', `/rounds/${round.id}/milestones/release`);
   const closed = await api<{ status: string }>('POST', `/rounds/${round.id}/milestones/release`);
   log('   ', `status ${closed.status}`);
 
   const valuation = (proceeds * 10_000) / EQUITY_BPS;
-  log('5/6', `acquisition at ${money(valuation)} → ${money(proceeds)} to this round's investors`);
+  log('6/7', `acquisition at ${money(valuation)} → ${money(proceeds)} to this round's investors`);
   const exited = await api<{ status: string; proceedsUsdc: number }>('POST', `/rounds/${round.id}/exit`, {
     kind: 'ACQUISITION', valuationUsdc: valuation, proceedsUsdc: proceeds, evidenceUri: 'https://example.com/press/acquisition',
   });
   log('   ', `status ${exited.status}, claim pool ${money(exited.proceedsUsdc)}`);
 
-  log('6/6', 'agents claim their pro-rata share of the exit');
+  log('7/7', 'agents claim their pro-rata share of the exit');
   const returns = await api<{ multiple: number; investors: { agentId: string; agentName: string; claimableUsdc: number; contributionUsdc: number }[] }>('GET', `/rounds/${round.id}/returns`);
   for (const inv of returns.investors.filter((i) => i.claimableUsdc > 0)) {
     const c = await api<{ claimedUsdc: number; txHash: string }>('POST', `/agents/${inv.agentId}/claim?roundId=${round.id}`);

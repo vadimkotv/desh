@@ -17,5 +17,6 @@ export interface DecisionRepository {
   listByAgent(agentId: string, limit?: number): Promise<Decision[]>;
   listAll(limit?: number): Promise<Decision[]>;
   listPending(): Promise<Decision[]>;
+  findPendingFor(agentId: string, roundId: string): Promise<Decision | null>;
   resolve(id: string, approval: ApprovalState, approvedBy: string): Promise<Decision>;
 }

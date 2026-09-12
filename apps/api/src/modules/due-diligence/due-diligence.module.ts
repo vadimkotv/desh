@@ -10,6 +10,7 @@ import { ReportQueries } from './application/report-queries.usecase';
 import { SIGNAL_EVALUATORS } from './domain/evaluator.port';
 import { ActivityEvaluator } from './domain/evaluators/activity.evaluator';
 import { DistributionEvaluator } from './domain/evaluators/distribution.evaluator';
+import { GrowthEvaluator } from './domain/evaluators/growth.evaluator';
 import { LiquidityEvaluator } from './domain/evaluators/liquidity.evaluator';
 import { ReputationEvaluator } from './domain/evaluators/reputation.evaluator';
 import { TractionEvaluator } from './domain/evaluators/traction.evaluator';
@@ -37,6 +38,7 @@ export const PREMIUM_REPORT_ROUTE = 'due-diligence/rounds/:id/premium';
         new LiquidityEvaluator(),
         new ReputationEvaluator(),
         new TractionEvaluator(),
+        new GrowthEvaluator(),
       ],
     },
   ],

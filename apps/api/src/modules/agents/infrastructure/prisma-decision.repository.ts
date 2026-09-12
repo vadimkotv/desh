@@ -51,6 +51,11 @@ export class PrismaDecisionRepository implements DecisionRepository {
     return rows.map(toDecision);
   }
 
+  async findPendingFor(agentId: string, roundId: string): Promise<Decision | null> {
+    const row = await this.prisma.decision.findFirst({ where: { agentId, roundId, approval: 'PENDING' }, include });
+    return row ? toDecision(row) : null;
+  }
+
   async resolve(id: string, approval: ApprovalState, approvedBy: string): Promise<Decision> {
     const row = await this.prisma.decision.update({
       where: { id },

@@ -24,6 +24,12 @@ export class ExecuteDecisionStep {
   async run(agent: AgentRecord, round: RoundDetail, acquired: AcquiredReport, verdict: RoundVerdict, reporter: RunReporter = NOOP_REPORTER): Promise<Decision> {
     const { engine, ...rest } = verdict;
     const approval = approvalFor(agent.mode, verdict.action);
+    // Re-running an advisory agent on a round it already has a proposal for must not
+    // queue the same ticket again — the human is looking at one decision, not three.
+    if (approval === 'PENDING') {
+      const open = await this.decisions.findPendingFor(agent.id, round.id);
+      if (open) return open;
+    }
     const decision = await this.decisions.create({
       ...rest,
       agentId: agent.id,

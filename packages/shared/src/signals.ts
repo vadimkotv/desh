@@ -8,6 +8,7 @@ export const SignalSource = z.enum([
   'graph-messari-dex',
   'graph-agent0',
   'onchain-arc',
+  'founder-metrics',
   'github',
   'demo-fixture',
 ]);
@@ -37,4 +38,19 @@ export const SignalKeys = {
   founderAgentFeedbackCount: 'founder.agent.feedbackCount',
   escrowRaisedUsdc: 'escrow.raised.usdc',
   escrowInvestorCount: 'escrow.investors.count',
+  // Founder-published metrics, read as trajectories. A level without a slope is not
+  // an investment case, so the growth keys are what the evaluator actually scores.
+  mrrUsd: 'founder.revenue.mrr.usd',
+  mrrPerMonthUsd: 'founder.revenue.mrr.perMonthUsd',
+  mrrGrowthBps: 'founder.revenue.mrr.growthBps',
+  activeUsers: 'founder.users.active.count',
+  activeUsersPerMonth: 'founder.users.active.perMonth',
+  activeUsersGrowthBps: 'founder.users.active.growthBps',
+  metricsSpanDays: 'founder.metrics.spanDays',
+} as const;
+
+// The founder metric keys the growth evaluator knows how to read.
+export const GROWTH_METRIC_KEYS = {
+  'revenue.mrr.usd': { latest: 'founder.revenue.mrr.usd', perMonth: 'founder.revenue.mrr.perMonthUsd', growth: 'founder.revenue.mrr.growthBps' },
+  'users.active.count': { latest: 'founder.users.active.count', perMonth: 'founder.users.active.perMonth', growth: 'founder.users.active.growthBps' },
 } as const;
