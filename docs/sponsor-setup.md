@@ -22,6 +22,8 @@
 2. Associate + fund USDC on the operator: https://faucet.circle.com → "Hedera Testnet" (token `0.0.429274`).
    The API funds each new agent with `AGENT_HEDERA_INITIAL_USDC` from the operator.
 3. `HEDERA_PAYTO_ACCOUNT_ID` = operator (or any account associated with USDC) — receives x402 payments.
+   The report paywall is **off by default**; set `X402_GATE_REPORTS=true` to arm it. Founders gate
+   their own metrics instead, which needs no Hedera keys at all.
 4. Blocky402: hosted testnet facilitator `https://api.testnet.blocky402.com` (default). Self-host: https://github.com/blockydevs/blocky402.
 5. HCS: leave `HEDERA_HCS_TOPIC_ID` empty; the first audit write creates a topic and logs its id — pin it afterwards.
 
@@ -32,3 +34,15 @@
 
 ## Anthropic
 - `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL` (default `claude-sonnet-4-5`). `DECISION_ENGINE=rules` forces the deterministic engine.
+
+## Local Arc fork (no testnet funds)
+
+```bash
+anvil --chain-id 5042002 --silent &
+cd packages/contracts && bash scripts/dev-arc-fork.sh   # prints the .env lines to paste
+pnpm --filter @agentipo/api dev:fund-agents             # USDC + gas for whatever agents the DB has
+```
+
+Agent key indexes climb with every reseed, so run `dev:fund-agents` after `db:seed`: past anvil's ten
+pre-funded accounts an agent has no gas and every settlement reverts with
+`gas required exceeds allowance: 0`.
