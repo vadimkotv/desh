@@ -24,7 +24,7 @@ export class ArcEscrowRoundFactory implements EscrowRoundFactory {
       toBaseUnits(p.targetUsdc),
       BigInt(Math.floor(p.deadline.getTime() / 1000)),
       p.milestoneBps,
-      p.returnCapBps,
+      p.equityBps,
     ]);
     this.log.log(`createRound tx ${txHash}`);
     const receipt = await this.arc.public.getTransactionReceipt({ hash: txHash });

@@ -3,6 +3,9 @@ import { z } from 'zod';
 // Live events emitted while an agent run executes. Streamed over SSE so the dashboard
 // can animate the pipeline step by step instead of waiting for the final decision.
 export const RunEventType = z.enum([
+  // Lifecycle notices: an agent going RUNNING or PAUSED. Firehose-only, not part of a run.
+  'agent.started',
+  'agent.paused',
   'run.started',
   'round.discovered',
   'data.purchasing',
@@ -32,6 +35,9 @@ export const RunEventSchema = z.object({
 });
 export type RunEvent = z.infer<typeof RunEventSchema>;
 
+// True for the firehose-only lifecycle notices above, which carry no run of their own.
+export const isAgentLifecycle = (type: RunEventType): boolean => type.startsWith('agent.');
+
 export const PIPELINE_STEPS = [
   { key: 'data', label: 'Buy data (x402)', start: 'data.purchasing', done: ['data.purchased'] },
   { key: 'gate', label: 'Mandate gate', start: 'data.purchased', done: ['gate.passed', 'gate.failed'] },
@@ -50,7 +56,7 @@ export const StatsSchema = z.object({
   investments: z.number(),
   investedUsdc: z.number(),
   dataPurchases: z.number(),
-  distributedUsdc: z.number(),
+  proceedsUsdc: z.number(),
   claimedUsdc: z.number(),
   auditEntries: z.number(),
   hcsAnchored: z.number(),

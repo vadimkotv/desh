@@ -9,7 +9,7 @@ import {RoundTypes} from "./RoundTypes.sol";
 
 /// @title RoundEscrowBase
 /// @notice Storage, read-only views and validation helpers shared by RoundEscrow.
-/// @dev State-changing logic lives in `RevenueShare` / `RoundEscrow`; this base has none.
+/// @dev State-changing logic lives in `ExitReturns` / `RoundEscrow`; this base has none.
 abstract contract RoundEscrowBase is IRoundEscrow, Operated, ReentrancyGuard {
     /// @dev Escrowed token (USDC, 6 decimals on Arc).
     IERC20 internal immutable _USDC;
@@ -88,10 +88,10 @@ abstract contract RoundEscrowBase is IRoundEscrow, Operated, ReentrancyGuard {
         if (sum != RoundTypes.BPS_DENOMINATOR) revert RoundTypes.InvalidMilestones();
     }
 
-    /// @dev Return cap must be between 1.0x and 5.0x of the amount raised.
-    function _validateReturnCap(uint16 bps) internal pure {
-        if (bps < RoundTypes.MIN_RETURN_CAP_BPS || bps > RoundTypes.MAX_RETURN_CAP_BPS) {
-            revert RoundTypes.InvalidReturnCap();
+    /// @dev The stake sold by a round must be between 0.1% and 50%.
+    function _validateEquity(uint16 bps) internal pure {
+        if (bps < RoundTypes.MIN_EQUITY_BPS || bps > RoundTypes.MAX_EQUITY_BPS) {
+            revert RoundTypes.InvalidEquity();
         }
     }
 }

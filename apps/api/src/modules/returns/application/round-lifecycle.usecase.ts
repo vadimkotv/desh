@@ -1,15 +1,15 @@
 import { Inject, Injectable, Logger, ServiceUnavailableException } from '@nestjs/common';
-import type { RoundStatus } from '@agentipo/shared';
+import type { RoundStatus, SettleExit } from '@agentipo/shared';
 import { AUDIT_LOG, type AuditLog } from '../../audit/domain/audit.port';
 import { ESCROW_OPERATOR, type EscrowOperator } from '../../settlement/domain/escrow-operator.port';
 import { ESCROW_READER, type EscrowReader, type OnchainRoundStatus } from '../../settlement/domain/escrow-reader.port';
 import { RoundQueries } from '../../startups/application/round-queries.usecase';
 import type { RoundDetail } from '../../startups/domain/round.repository';
-import { DISTRIBUTION_REPOSITORY, type DistributionRepository } from '../domain/distribution.repository';
+import { EXIT_EVENT_REPOSITORY, type ExitEventRepository } from '../domain/exit-event.repository';
 
-const STATUS: Record<OnchainRoundStatus, RoundStatus> = { Open: 'OPEN', Funded: 'FUNDED', Failed: 'FAILED', Closed: 'CLOSED', Repaid: 'REPAID' };
+const STATUS: Record<OnchainRoundStatus, RoundStatus> = { Open: 'OPEN', Funded: 'FUNDED', Failed: 'FAILED', Closed: 'CLOSED', Exited: 'EXITED' };
 
-// Platform-side lifecycle: finalize → release milestones → distribute revenue.
+// Platform-side lifecycle: finalize → release milestones → settle the exit.
 // Every action is followed by a chain → DB sync so the API never invents state.
 @Injectable()
 export class RoundLifecycleUseCase {
@@ -19,7 +19,7 @@ export class RoundLifecycleUseCase {
     @Inject(ESCROW_OPERATOR) private readonly operator: EscrowOperator | null,
     @Inject(ESCROW_READER) private readonly reader: EscrowReader | null,
     @Inject(AUDIT_LOG) private readonly audit: AuditLog,
-    @Inject(DISTRIBUTION_REPOSITORY) private readonly distributions: DistributionRepository,
+    @Inject(EXIT_EVENT_REPOSITORY) private readonly exits: ExitEventRepository,
     private readonly rounds: RoundQueries,
   ) {}
 
@@ -39,20 +39,20 @@ export class RoundLifecycleUseCase {
     return synced;
   }
 
-  async distribute(roundId: string, amountUsdc: number): Promise<RoundDetail> {
+  async settleExit(roundId: string, exit: SettleExit): Promise<RoundDetail> {
     const { onchainId } = await this.prepare(roundId);
-    const txHash = await this.op().distribute(onchainId, amountUsdc);
-    await this.distributions.create({ roundId, amountUsdc, txHash, source: 'platform-revenue-router' });
+    const txHash = await this.op().settleExit(onchainId, exit);
+    await this.exits.create({ roundId, ...exit, txHash });
     const synced = await this.sync(roundId);
-    await this.audit.record('REVENUE_DISTRIBUTED', { roundId, onchainId, txHash, amountUsdc, distributedUsdc: synced.distributedUsdc, status: synced.status });
-    this.log.log(`distributed ${amountUsdc} USDC into round ${onchainId} → ${synced.distributedUsdc} total`);
+    await this.audit.record('EXIT_SETTLED', { roundId, onchainId, txHash, ...exit, proceedsPoolUsdc: synced.proceedsUsdc, status: synced.status });
+    this.log.log(`${exit.kind} settled into round ${onchainId}: +${exit.proceedsUsdc} → ${synced.proceedsUsdc} claimable`);
     return synced;
   }
 
   async sync(roundId: string): Promise<RoundDetail> {
     const { onchainId } = await this.prepare(roundId);
-    const chain = await this.rd().getRound(onchainId);
-    await this.rounds.syncOnchain(roundId, { status: STATUS[chain.status], raisedUsdc: chain.raisedUsdc, distributedUsdc: chain.distributedUsdc });
+    const c = await this.rd().getRound(onchainId);
+    await this.rounds.syncOnchain(roundId, { status: STATUS[c.status], raisedUsdc: c.raisedUsdc, releasedUsdc: c.releasedUsdc, proceedsUsdc: c.proceedsUsdc });
     return this.rounds.getRound(roundId);
   }
 

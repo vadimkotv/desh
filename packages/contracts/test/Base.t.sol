@@ -13,8 +13,11 @@ abstract contract BaseTest is Test {
     uint256 internal constant USDC = 1e6;
     uint256 internal constant TARGET = 100_000 * USDC;
     uint64 internal constant DURATION = 7 days;
-    /// @dev Default investor return cap: 1.5x of the amount raised.
-    uint16 internal constant CAP_BPS = 15_000;
+    /// @dev Default stake sold by a round: 8% -> a 1.25M USDC entry valuation at target.
+    uint16 internal constant EQUITY_BPS = 800;
+
+    /// @dev Stand-in link to the announcement backing an exit.
+    string internal constant EVIDENCE = "ipfs://exit-evidence";
 
     MockUSDC internal usdc;
     RoundEscrow internal escrow;
@@ -56,18 +59,18 @@ abstract contract BaseTest is Test {
         return _createRound(TARGET, _milestones());
     }
 
-    /// @dev Create a round with a custom target and schedule (default cap) as the platform.
+    /// @dev Create a round with a custom target and schedule (default equity) as the platform.
     function _createRound(uint256 target, uint16[] memory bps) internal returns (uint256) {
-        return _createRound(target, bps, CAP_BPS);
+        return _createRound(target, bps, EQUITY_BPS);
     }
 
-    /// @dev Create a round with a custom target, schedule and return cap as the platform.
-    function _createRound(uint256 target, uint16[] memory bps, uint16 capBps)
+    /// @dev Create a round with a custom target, schedule and equity stake as the platform.
+    function _createRound(uint256 target, uint16[] memory bps, uint16 equityBps)
         internal
         returns (uint256)
     {
         vm.prank(platform);
-        return escrow.createRound(founder, target, deadline, bps, capBps);
+        return escrow.createRound(founder, target, deadline, bps, equityBps);
     }
 
     /// @dev Invest `amount` as `investor`.
@@ -100,11 +103,22 @@ abstract contract BaseTest is Test {
         }
     }
 
-    /// @dev Push `amount` of revenue into a round as `from` (minting + approving first).
-    function _distribute(address from, uint256 roundId, uint256 amount) internal {
-        _fund(from, amount);
+    /// @dev Settle an acquisition of `proceeds` as `from` (minting + approving first).
+    function _settleExit(address from, uint256 roundId, uint256 proceeds) internal {
+        _settleExit(from, roundId, RoundTypes.ExitKind.Acquisition, proceeds * 10, proceeds);
+    }
+
+    /// @dev Settle an arbitrary liquidity event as `from`.
+    function _settleExit(
+        address from,
+        uint256 roundId,
+        RoundTypes.ExitKind kind,
+        uint256 valuation,
+        uint256 proceeds
+    ) internal {
+        _fund(from, proceeds);
         vm.prank(from);
-        escrow.distribute(roundId, amount);
+        escrow.settleExit(roundId, kind, valuation, proceeds, EVIDENCE);
     }
 
     /// @dev Status of a round as the enum.

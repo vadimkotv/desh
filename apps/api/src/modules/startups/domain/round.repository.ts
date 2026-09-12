@@ -9,6 +9,14 @@ export interface RoundOnchainRef {
   escrowAddress: string;
 }
 
+// What a chain read tells us about a round; the DB never invents these.
+export interface RoundOnchainState {
+  status: RoundStatus;
+  raisedUsdc: number;
+  releasedUsdc: number;
+  proceedsUsdc: number;
+}
+
 export interface RoundRepository {
   create(input: CreateRound, onchain?: RoundOnchainRef): Promise<RoundDetail>;
   findById(id: string): Promise<RoundDetail | null>;
@@ -17,8 +25,5 @@ export interface RoundRepository {
   findOpenUndecidedByAgent(sectors: string[], agentId: string): Promise<RoundDetail[]>;
   addRaised(id: string, amountUsdc: number): Promise<void>;
   setStatus(id: string, status: RoundStatus): Promise<void>;
-  syncOnchain(
-    id: string,
-    state: { status: RoundStatus; raisedUsdc: number; distributedUsdc: number },
-  ): Promise<void>;
+  syncOnchain(id: string, state: RoundOnchainState): Promise<void>;
 }

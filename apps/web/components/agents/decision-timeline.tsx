@@ -5,10 +5,11 @@ import { SectionLabel } from '@/components/ui/panel';
 import { formatDate, num } from '@/lib/format';
 import { DecisionItem } from './decision-item';
 
-type DecisionTimelineProps = { decisions: Decision[]; roundNames: Map<string, string>; roundCaps: Map<string, number> };
+type RoundTerms = { targetUsdc: number; equityBps: number };
+type DecisionTimelineProps = { decisions: Decision[]; roundNames: Map<string, string>; roundTerms: Map<string, RoundTerms> };
 
 // Newest first; the bar strip above shows invested amounts in time order (oldest → newest).
-export function DecisionTimeline({ decisions, roundNames, roundCaps }: DecisionTimelineProps) {
+export function DecisionTimeline({ decisions, roundNames, roundTerms }: DecisionTimelineProps) {
   const sorted = [...decisions].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   const invested = [...decisions]
     .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
@@ -32,7 +33,7 @@ export function DecisionTimeline({ decisions, roundNames, roundCaps }: DecisionT
           </div>
           <ol className="flex flex-col gap-2 border-l border-line pl-1">
             {sorted.map((decision) => (
-              <DecisionItem key={decision.id} decision={decision} roundName={roundNames.get(decision.roundId)} returnCapBps={roundCaps.get(decision.roundId)} />
+              <DecisionItem key={decision.id} decision={decision} roundName={roundNames.get(decision.roundId)} round={roundTerms.get(decision.roundId)} />
             ))}
           </ol>
         </>

@@ -41,9 +41,9 @@ export function KpiStrip({ stats, investments, receipts }: KpiStripProps) {
       <StatTile
         label="Returned to agents"
         value={usdcCompact(stats.claimedUsdc)}
-        hint={`of ${usdcCompact(stats.distributedUsdc)} revenue distributed`}
+        hint={`of ${usdcCompact(stats.proceedsUsdc)} exit proceeds`}
         tone="accent"
-        viz={<Ring value={percent(stats.claimedUsdc, stats.distributedUsdc)} size={44} stroke={5} color="var(--color-chart-accent)" showValue={false} />}
+        viz={<Ring value={percent(stats.claimedUsdc, stats.proceedsUsdc)} size={44} stroke={5} color="var(--color-chart-accent)" showValue={false} />}
       />
       <StatTile label="Decisions" value={num(stats.decisions)} hint={`${stats.agents} agents · mandate-bound`} tone="agent" />
       <StatTile

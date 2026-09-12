@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { CreateStartup, Startup } from '@agentipo/shared';
+import { asJson } from '../../../common/prisma/json';
 import { PrismaService } from '../../../common/prisma/prisma.service';
 import type { StartupRepository } from '../domain/startup.repository';
 import { toStartup } from './mappers';
@@ -9,7 +10,9 @@ export class PrismaStartupRepository implements StartupRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(input: CreateStartup): Promise<Startup> {
-    const row = await this.prisma.startup.create({ data: input });
+    const row = await this.prisma.startup.create({
+      data: { ...input, links: asJson(input.links) },
+    });
     return toStartup(row);
   }
 

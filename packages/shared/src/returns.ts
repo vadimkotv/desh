@@ -1,6 +1,17 @@
 import { z } from 'zod';
 
-// Revenue-share returns for a round: what has been distributed, what each investor may claim.
+// Capital comes back only on a liquidity event. There is no revenue share and no cap:
+// whatever the exit pays is split pro-rata among the round's investors.
+export const ExitKind = z.enum(['ACQUISITION', 'IPO', 'TGE', 'CONTRACT']);
+export type ExitKind = z.infer<typeof ExitKind>;
+
+export const EXIT_LABELS: Record<ExitKind, string> = {
+  ACQUISITION: 'Acquisition',
+  IPO: 'IPO',
+  TGE: 'Token generation event',
+  CONTRACT: 'Contract payout',
+};
+
 export const InvestorReturnSchema = z.object({
   agentId: z.string().nullable(),
   agentName: z.string().nullable(),
@@ -8,7 +19,8 @@ export const InvestorReturnSchema = z.object({
   contributionUsdc: z.number(),
   claimableUsdc: z.number(),
   claimedUsdc: z.number(),
-  expectedUsdc: z.number(), // contribution × cap
+  proRataUsdc: z.number(), // share of everything settled so far
+  multiple: z.number(), // proRata / contribution
 });
 export type InvestorReturn = z.infer<typeof InvestorReturnSchema>;
 
@@ -16,26 +28,35 @@ export const RoundReturnsSchema = z.object({
   roundId: z.string(),
   onchainRoundId: z.number().nullable(),
   status: z.string(),
-  returnCapBps: z.number(),
+  equityBps: z.number(),
   raisedUsdc: z.number(),
-  capUsdc: z.number(),
-  distributedUsdc: z.number(),
-  repaidShare: z.number(), // distributed / cap, 0..1
+  entryValuationUsdc: z.number(),
+  proceedsUsdc: z.number(),
+  multiple: z.number(), // proceeds / raised, 0 until an exit is settled
   investors: z.array(InvestorReturnSchema),
 });
 export type RoundReturns = z.infer<typeof RoundReturnsSchema>;
 
-export const DistributeSchema = z.object({ amountUsdc: z.number().positive() });
-export type Distribute = z.infer<typeof DistributeSchema>;
+export const SettleExitSchema = z.object({
+  kind: ExitKind,
+  valuationUsdc: z.number().nonnegative().default(0),
+  proceedsUsdc: z.number().positive(),
+  evidenceUri: z.string().max(200).default(''),
+});
+export type SettleExit = z.infer<typeof SettleExitSchema>;
 
-export const DistributionSchema = z.object({
+export const ExitEventSchema = z.object({
   id: z.string(),
   roundId: z.string(),
-  amountUsdc: z.number(),
+  kind: ExitKind,
+  valuationUsdc: z.number(),
+  proceedsUsdc: z.number(),
+  evidenceUri: z.string(),
   txHash: z.string().nullable(),
-  source: z.string(),
   createdAt: z.string(),
 });
-export type Distribution = z.infer<typeof DistributionSchema>;
+export type ExitEvent = z.infer<typeof ExitEventSchema>;
 
-export const capMultiplier = (bps: number): string => `${(bps / 10_000).toFixed(2).replace(/\.?0+$/, '')}x`;
+// "3.4x" — trailing zeros trimmed. Returns "—" before anything is settled.
+export const formatMultiple = (value: number): string =>
+  value > 0 ? `${value.toFixed(2).replace(/\.?0+$/, '')}x` : '—';

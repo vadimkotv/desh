@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import type { RunEvent } from '@agentipo/shared';
+import { isAgentLifecycle, type RunEvent } from '@agentipo/shared';
 import { applyEvent, type RunView } from '@/lib/run-state';
 import { subscribeRunEvents, type SseStatus } from '@/lib/sse';
 
@@ -51,6 +51,7 @@ export function usePacedRuns(url: string | null, limit = 8, seed: RunEvent[][] =
 
     const unsubscribe = subscribeRunEvents(url, {
       onEvent: (event) => {
+        if (isAgentLifecycle(event.type)) return; // firehose notice, not a run
         let lane = lanes.get(event.runId);
         if (!lane) {
           lane = { queue: [], timer: null };
@@ -60,6 +61,7 @@ export function usePacedRuns(url: string | null, limit = 8, seed: RunEvent[][] =
         if (lane.timer === null) drain(lane);
       },
       onStatus: setStatus,
+      closeOnCompleted: url.includes('/runs/'), // the firehose outlives any single run
     });
 
     return () => {

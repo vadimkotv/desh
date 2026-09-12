@@ -4,12 +4,12 @@ const STAGES: { key: RoundStatus; label: string; hint: string }[] = [
   { key: 'OPEN', label: 'Open', hint: 'agents invest USDC' },
   { key: 'FUNDED', label: 'Funded', hint: 'target reached' },
   { key: 'CLOSED', label: 'Closed', hint: 'finalized · milestones release' },
-  { key: 'REPAID', label: 'Repaid', hint: 'revenue hit the cap' },
+  { key: 'EXITED', label: 'Exited', hint: 'acquisition · IPO · TGE · contract' },
 ];
 
-const order: Record<RoundStatus, number> = { OPEN: 0, FUNDED: 1, CLOSED: 2, REPAID: 3, FAILED: 1 };
+const order: Record<RoundStatus, number> = { OPEN: 0, FUNDED: 1, CLOSED: 2, EXITED: 3, FAILED: 1 };
 
-// Round lifecycle: Open → Funded → Closed → Repaid, with the Failed branch off Open.
+// Round lifecycle: Open → Funded → Closed → Exited, with the Failed branch off Open.
 export function LifecycleStrip({ status }: { status: RoundStatus }) {
   const reached = order[status];
   const failed = status === 'FAILED';

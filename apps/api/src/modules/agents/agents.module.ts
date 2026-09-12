@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { AuditModule } from '../audit/audit.module';
+import { DueDiligenceModule } from '../due-diligence/due-diligence.module';
 import { DataRoomModule } from '../data-room/data-room.module';
 import { PaymentsModule } from '../payments/payments.module';
 import { SettlementModule } from '../settlement/settlement.module';
@@ -13,6 +14,7 @@ import { ExecuteDecisionStep } from './application/execute-decision.step';
 import { RegisterIdentityUseCase } from './application/register-identity.usecase';
 import { RunAgentUseCase } from './application/run-agent.usecase';
 import { RunEventBus } from './application/run-event.bus';
+import { ReviewFeedQuery } from './application/review-feed.query';
 import { RunRoundStep } from './application/run-round.step';
 import { AGENT_REPOSITORY } from './domain/agent.repository';
 import { DECISION_ENGINES } from './domain/decision-engine.port';
@@ -30,7 +32,7 @@ import { DecisionsController } from './presentation/decisions.controller';
 import { RunsController } from './presentation/runs.controller';
 
 @Module({
-  imports: [StartupsModule, DataRoomModule, PaymentsModule, SettlementModule, AuditModule],
+  imports: [StartupsModule, DataRoomModule, PaymentsModule, SettlementModule, AuditModule, DueDiligenceModule],
   controllers: [AgentsController, DecisionsController, RunsController],
   providers: [
     LlmDecisionEngine,
@@ -47,6 +49,7 @@ import { RunsController } from './presentation/runs.controller';
     CreateAgentUseCase,
     RegisterIdentityUseCase,
     AgentQueries,
+    ReviewFeedQuery,
     { provide: AGENT_REPOSITORY, useClass: PrismaAgentRepository },
     { provide: DECISION_REPOSITORY, useClass: PrismaDecisionRepository },
     { provide: AGENT_IDENTITY, useClass: Erc8004IdentityClient },

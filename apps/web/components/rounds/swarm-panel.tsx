@@ -10,11 +10,11 @@ import type { SwarmRun } from '@/lib/api-types';
 import type { RunView } from '@/lib/run-state';
 import { SwarmTable } from './swarm-table';
 
-type SwarmPanelProps = { roundId: string; agents: Agent[]; returnCapBps: number; status: RoundStatus };
+type SwarmPanelProps = { roundId: string; agents: Agent[]; round: { targetUsdc: number; equityBps: number }; status: RoundStatus };
 
 // Launches every agent on this round, streams one stepper per agent, and folds
 // their verdicts into the comparison table as they land.
-export function SwarmPanel({ roundId, agents, returnCapBps, status }: SwarmPanelProps) {
+export function SwarmPanel({ roundId, agents, round, status }: SwarmPanelProps) {
   const router = useRouter();
   const [runs, setRuns] = useState<SwarmRun[]>([]);
   const [views, setViews] = useState<Map<string, RunView>>(new Map());
@@ -56,7 +56,7 @@ export function SwarmPanel({ roundId, agents, returnCapBps, status }: SwarmPanel
         <div className="flex flex-col gap-4">
           <div>
             <p className="eyebrow mb-2">{allDone ? 'verdicts' : 'verdicts forming…'}</p>
-            <SwarmTable views={list} agents={agents} returnCapBps={returnCapBps} />
+            <SwarmTable views={list} agents={agents} round={round} />
           </div>
           <div className="grid gap-2 xl:grid-cols-2">
             {runs.map((run) => (

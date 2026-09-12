@@ -22,6 +22,12 @@ export class RunEventBus {
     return { runId, emit, forRound: (id) => this.reporter(runId, agentId, id) };
   }
 
+  // Lifecycle notices belong on the firehose but are not part of any run, so they skip
+  // the per-run replay stream and the bounded history.
+  announce(agentId: string, type: RunEventType, payload: Record<string, unknown> = {}): void {
+    this.firehose.next({ id: ++this.seq, runId: `agent:${agentId}`, agentId, roundId: null, type, at: new Date().toISOString(), payload });
+  }
+
   run$(runId: string): Observable<RunEvent> {
     return this.subjectFor(runId).asObservable();
   }

@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { entryValuation } from '@agentipo/shared';
 import { fromBaseUnits } from '../../../../common/money';
 import type { EscrowReader, InvestorPosition, OnchainRound } from '../../domain/escrow-reader.port';
 import { ArcClients } from './arc-clients';
@@ -29,9 +30,10 @@ export class ArcEscrowReader implements EscrowReader {
       releasedCount: round.releasedCount,
       investorCount: Number(investors),
       milestoneBps: [...milestones],
-      returnCapBps: round.returnCapBps,
-      capUsdc: (raisedUsdc * round.returnCapBps) / 10_000,
-      distributedUsdc: fromBaseUnits(round.distributed),
+      equityBps: round.equityBps,
+      entryValuationUsdc: entryValuation(raisedUsdc, round.equityBps),
+      releasedUsdc: fromBaseUnits(round.released),
+      proceedsUsdc: fromBaseUnits(round.proceeds),
     };
   }
 

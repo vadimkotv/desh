@@ -9,6 +9,7 @@ model Startup {
   tokenAddress    String?
   tokenNetwork    String             @default("mainnet")
   githubRepo      String?
+  links           Json               @default("[]")
   createdAt       DateTime           @default(now())
   rounds          Round[]
   snapshots       DataRoomSnapshot[]
@@ -26,23 +27,26 @@ model Round {
   deadline       DateTime
   status         RoundStatus          @default(OPEN)
   milestones     Json
-  returnCapBps   Int                  @default(15000)
-  distributedUsdc Decimal             @default(0) @db.Decimal(18, 6)
+  equityBps      Int                  @default(800)
+  releasedUsdc   Decimal              @default(0) @db.Decimal(18, 6)
+  proceedsUsdc   Decimal              @default(0) @db.Decimal(18, 6)
   createdAt      DateTime             @default(now())
   reports        DueDiligenceReport[]
   decisions      Decision[]
   investments    Investment[]
-  distributions  Distribution[]
+  exits          ExitEvent[]
 }
 
-model Distribution {
-  id         String   @id @default(uuid())
-  roundId    String
-  round      Round    @relation(fields: [roundId], references: [id])
-  amountUsdc Decimal  @db.Decimal(18, 6)
-  txHash     String?
-  source     String
-  createdAt  DateTime @default(now())
+model ExitEvent {
+  id            String   @id @default(uuid())
+  roundId       String
+  round         Round    @relation(fields: [roundId], references: [id])
+  kind          ExitKind
+  valuationUsdc Decimal  @default(0) @db.Decimal(24, 6)
+  proceedsUsdc  Decimal  @db.Decimal(18, 6)
+  evidenceUri   String   @default("")
+  txHash        String?
+  createdAt     DateTime @default(now())
 
   @@index([roundId, createdAt])
 }

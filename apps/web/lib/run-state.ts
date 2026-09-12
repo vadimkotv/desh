@@ -11,7 +11,7 @@ export type RunDecision = {
   reasoning: string;
   engine: string;
   keyRisks: string[];
-  returnCapBps: number | null;
+  equityShareBps: number | null;
 };
 
 export type RunView = {
@@ -59,13 +59,17 @@ function decisionOf(events: RunEvent[]): RunDecision | null {
   const action = str(p.action);
   if (action !== 'INVEST' && action !== 'PASS' && action !== 'WATCH') return null;
   const policy = scoped.find((e) => e.type === 'policy.evaluated')?.payload;
+  const round = scoped.find((e) => e.type === 'round.discovered')?.payload;
+  const amountUsdc = numOr(p.amountUsdc, 0);
+  const target = numOr(round?.targetUsdc, 0);
+  const equity = numOr(round?.equityBps, 0);
   return {
     action,
-    amountUsdc: numOr(p.amountUsdc, 0),
+    amountUsdc,
     confidence: numOr(p.confidence, 0),
     reasoning: str(p.reasoning) ?? (policy ? `spending policy: ${str(policy.reason) ?? 'no budget'}` : ''),
     engine: str(p.engine) ?? 'policy',
-    returnCapBps: typeof p.returnCapBps === 'number' ? p.returnCapBps : null,
+    equityShareBps: target > 0 && equity > 0 ? (amountUsdc / target) * equity : null,
     keyRisks: Array.isArray(p.keyRisks) ? p.keyRisks.filter((r): r is string => typeof r === 'string') : [],
   };
 }

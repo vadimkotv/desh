@@ -52,8 +52,13 @@ export const bpsToPercent = (bps: number): string => `${(bps / 100).toFixed(bps 
 
 export const ratioToPercent = (ratio: number): string => `${Math.round(ratio * 100)}%`;
 
-// Maximum an investor gets back under revenue-based financing: amount × return cap.
-export const upTo = (amountUsdc: number, returnCapBps: number): number => (amountUsdc * returnCapBps) / 10_000;
+// The round sells `equityBps` of the company split pro-rata among contributors, so a
+// ticket of `amountUsdc` in a round targeting `targetUsdc` buys this slice of it.
+export const equityShareBps = (amountUsdc: number, targetUsdc: number, equityBps: number): number =>
+  targetUsdc > 0 ? (amountUsdc / targetUsdc) * equityBps : 0;
+
+// "0.32%" — two decimals, trailing zeros trimmed.
+export const bpsShare = (bps: number): string => `${(bps / 100).toFixed(2).replace(/\.?0+$/, '')}%`;
 
 export const arcAddressUrl = (address: string): string =>
   `https://testnet.arcscan.app/address/${address}`;

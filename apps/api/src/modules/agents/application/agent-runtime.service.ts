@@ -1,6 +1,7 @@
 import { Injectable, Logger, type OnModuleDestroy, type OnModuleInit } from '@nestjs/common';
 import type { Agent } from '@agentipo/shared';
 import { AgentQueries } from './agent-queries.usecase';
+import { RunEventBus } from './run-event.bus';
 import { RunAgentUseCase } from './run-agent.usecase';
 
 const POLL_MS = 4_000;
@@ -16,6 +17,7 @@ export class AgentRuntimeService implements OnModuleInit, OnModuleDestroy {
   constructor(
     private readonly agents: AgentQueries,
     private readonly runner: RunAgentUseCase,
+    private readonly events: RunEventBus,
   ) {}
 
   onModuleInit(): void {
@@ -29,12 +31,15 @@ export class AgentRuntimeService implements OnModuleInit, OnModuleDestroy {
 
   async start(agentId: string): Promise<Agent> {
     const agent = await this.agents.setStatus(agentId, 'RUNNING');
+    this.events.announce(agentId, 'agent.started', { name: agent.name, status: agent.status });
     this.queue(agentId);
     return agent;
   }
 
-  pause(agentId: string): Promise<Agent> {
-    return this.agents.setStatus(agentId, 'PAUSED');
+  async pause(agentId: string): Promise<Agent> {
+    const agent = await this.agents.setStatus(agentId, 'PAUSED');
+    this.events.announce(agentId, 'agent.paused', { name: agent.name, status: agent.status });
+    return agent;
   }
 
   private async tick(): Promise<void> {

@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { toBaseUnits } from '../../../../common/money';
-import type { EscrowOperator } from '../../domain/escrow-operator.port';
+import type { EscrowOperator, ExitSettlement } from '../../domain/escrow-operator.port';
 import { ArcClients } from './arc-clients';
-import { roundEscrowAbi } from './escrow.abi';
+import { EXIT_KIND_INDEX, roundEscrowAbi } from './escrow.abi';
 import { PlatformSigner } from './platform-signer';
 
 @Injectable()
@@ -22,13 +22,19 @@ export class ArcEscrowOperator implements EscrowOperator {
     return this.call('releaseMilestone', [BigInt(onchainRoundId)]);
   }
 
-  async distribute(onchainRoundId: number, amountUsdc: number): Promise<string> {
-    const units = toBaseUnits(amountUsdc);
+  async settleExit(onchainRoundId: number, exit: ExitSettlement): Promise<string> {
+    const units = toBaseUnits(exit.proceedsUsdc);
     await this.signer.ensureUsdcAllowance(units);
-    return this.call('distribute', [BigInt(onchainRoundId), units]);
+    return this.call('settleExit', [
+      BigInt(onchainRoundId),
+      EXIT_KIND_INDEX[exit.kind],
+      toBaseUnits(exit.valuationUsdc),
+      units,
+      exit.evidenceUri,
+    ]);
   }
 
-  private async call(fn: 'finalize' | 'releaseMilestone' | 'distribute', args: readonly unknown[]): Promise<string> {
+  private async call(fn: 'finalize' | 'releaseMilestone' | 'settleExit', args: readonly unknown[]): Promise<string> {
     const hash = await this.signer.write(this.arc.escrowAddress, roundEscrowAbi, fn, args);
     this.log.log(`${fn}(${args.join(', ')}) tx ${hash}`);
     return hash;

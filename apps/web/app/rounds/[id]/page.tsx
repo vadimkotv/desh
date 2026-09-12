@@ -33,7 +33,7 @@ export default async function RoundPage({ params }: RoundPageProps) {
     pricingResult,
     onchainResult,
     returnsResult,
-    distResult,
+    exitsResult,
   ] = await Promise.all([
     api.ddReport(round.id),
     api.ddHistory(round.id),
@@ -42,11 +42,11 @@ export default async function RoundPage({ params }: RoundPageProps) {
     api.pricing(),
     onchain ? api.onchainRound(round.onchainRoundId as number) : Promise.resolve(null),
     onchain ? api.roundReturns(round.id) : Promise.resolve(null),
-    onchain ? api.distributions(round.id) : Promise.resolve(null),
+    onchain ? api.exits(round.id) : Promise.resolve(null),
   ]);
   const chain = onchainResult?.ok ? onchainResult.data : null;
   const returns = returnsResult?.ok ? returnsResult.data : null;
-  const distributions = distResult?.ok ? distResult.data : [];
+  const exits = exitsResult?.ok ? exitsResult.data : [];
   const report = reportResult.ok ? reportResult.data : null;
   const history = listOrEmpty(historyResult).items;
   const signals = listOrEmpty(signalsResult).items;
@@ -59,28 +59,15 @@ export default async function RoundPage({ params }: RoundPageProps) {
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="flex flex-col gap-4 lg:col-span-2">
           <DdSection startupId={round.startupId} report={report} history={history} />
-          <SwarmPanel
-            roundId={round.id}
-            agents={agents}
-            returnCapBps={round.returnCapBps}
-            status={round.status}
-          />
-          <ReturnsPanel
-            returns={returns}
-            distributions={distributions}
-            chainId={round.investments[0]?.chainId ?? 0}
-          />
+          <SwarmPanel roundId={round.id} agents={agents} round={round} status={round.status} />
+          <ReturnsPanel returns={returns} exits={exits} chainId={round.investments[0]?.chainId ?? 0} />
           <SignalsTable signals={signals} />
           <InvestmentsList investments={round.investments ?? []} agents={agents} />
         </div>
         <div className="flex flex-col gap-4">
           <OnchainPanel round={round} onchain={chain} />
           {onchain && (
-            <OperatorActions
-              round={round}
-              releasedCount={chain?.releasedCount ?? 0}
-              capUsdc={returns?.capUsdc ?? chain?.capUsdc ?? 0}
-            />
+            <OperatorActions round={round} releasedCount={chain?.releasedCount ?? 0} />
           )}
           <X402Callout roundId={round.id} pricing={pricingResult.ok ? pricingResult.data : null} />
         </div>

@@ -12,6 +12,10 @@ export interface RunOptions {
   roundId?: string;
 }
 
+// Rounds a background cycle takes at once: enough that a burst of new startups is
+// picked up in one pass, small enough that a paused agent stops promptly.
+const BACKGROUND_BATCH = 4;
+
 // The autonomous loop: discover → buy data → decide → settle → audit, per open round.
 // Each round is isolated: one failure is reported, the run continues.
 @Injectable()
@@ -44,7 +48,7 @@ export class RunAgentUseCase {
     const agent = await this.agents.getRecord(agentId);
     const candidates = await this.rounds.openUndecidedForAgent(agent.mandate.sectors, agent.id);
     if (candidates.length === 0) return false;
-    await this.process(agent, candidates.slice(0, 1), {}, randomUUID());
+    await this.process(agent, candidates.slice(0, BACKGROUND_BATCH), {}, randomUUID());
     return true;
   }
 

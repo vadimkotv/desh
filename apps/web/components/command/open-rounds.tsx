@@ -1,12 +1,11 @@
-import type { DueDiligencePreview } from '@agentipo/shared';
 import { EmptyState } from '@/components/ui/empty-state';
 import { SectionLabel } from '@/components/ui/panel';
 import type { RoundDetail } from '@/lib/types';
 import { RoundRow } from './round-row';
 
-type OpenRoundsProps = { rounds: RoundDetail[]; previews: Map<string, DueDiligencePreview | null> };
+type OpenRoundsProps = { rounds: RoundDetail[]; scores: Map<string, number | null> };
 
-export function OpenRounds({ rounds, previews }: OpenRoundsProps) {
+export function OpenRounds({ rounds, scores }: OpenRoundsProps) {
   return (
     <div className="flex flex-col">
       <SectionLabel right={`${rounds.length} accepting capital`}>Open rounds</SectionLabel>
@@ -15,7 +14,7 @@ export function OpenRounds({ rounds, previews }: OpenRoundsProps) {
       ) : (
         <div className="flex flex-col gap-2">
           {rounds.map((round) => (
-            <RoundRow key={round.id} round={round} preview={previews.get(round.id) ?? null} />
+            <RoundRow key={round.id} round={round} score={scores.get(round.id) ?? null} />
           ))}
         </div>
       )}

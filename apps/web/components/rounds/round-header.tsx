@@ -1,9 +1,9 @@
 import { Meter } from '@/components/charts/meter';
 import { Badge, roundStatusTone } from '@/components/ui/badge';
 import { CopyButton } from '@/components/ui/copy-button';
-import { ExternalLink } from '@/components/ui/external-link';
-import { capMultiplier } from '@agentipo/shared';
-import { countdown, formatDate, percent, usdc } from '@/lib/format';
+import { StartupLinks } from '@/components/startups/startup-links';
+import { bpsShare, countdown, formatDate, percent, usdc, usdcCompact } from '@/lib/format';
+import { entryValuation } from '@agentipo/shared';
 import type { RoundDetail } from '@/lib/types';
 
 export function RoundHeader({ round }: { round: RoundDetail }) {
@@ -20,11 +20,10 @@ export function RoundHeader({ round }: { round: RoundDetail }) {
             <Badge tone="info">{startup.sector}</Badge>
             <Badge tone={roundStatusTone[round.status]}>{round.status}</Badge>
             {round.escrowAddress && <Badge tone="accent">⛓ on-chain #{round.onchainRoundId}</Badge>}
-            <Badge tone="amber" title="return cap: investors are repaid from revenue up to this multiple">{capMultiplier(round.returnCapBps)} cap</Badge>
+            <Badge tone="amber" title="stake sold by this round — investors are paid pro-rata when the startup exits">{bpsShare(round.equityBps)} equity</Badge>
           </div>
           <p className="mt-2 max-w-2xl text-[13px] leading-relaxed text-muted">{startup.description}</p>
           <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 font-mono text-[11px]">
-            {startup.website && <ExternalLink href={startup.website}>{startup.website}</ExternalLink>}
             <span className="flex items-center gap-1.5 text-muted">
               founder <CopyButton value={startup.founderAddress} />
             </span>
@@ -36,6 +35,7 @@ export function RoundHeader({ round }: { round: RoundDetail }) {
                 token <CopyButton value={startup.tokenAddress} /> <span className="text-dim">{startup.tokenNetwork}</span>
               </span>
             )}
+            <StartupLinks startup={startup} />
           </div>
         </div>
         <div className="w-full shrink-0 rounded-md border border-line bg-raised/60 p-3 md:w-72">
@@ -44,6 +44,7 @@ export function RoundHeader({ round }: { round: RoundDetail }) {
             <span className="font-mono text-[10.5px] text-muted">{Math.round(progress)}%</span>
           </div>
           <p className="font-mono text-[10.5px] text-muted">target {usdc(round.targetUsdc)} · min ticket {usdc(round.minTicketUsdc)}</p>
+          <p className="font-mono text-[10.5px] text-dim">{bpsShare(round.equityBps)} at {usdcCompact(entryValuation(round.targetUsdc, round.equityBps))} valuation</p>
           <Meter value={progress} tone={progress >= 100 ? 'accent' : 'info'} className="mt-2" height={5} />
           <div className="mt-2 flex items-center justify-between font-mono text-[10.5px]">
             <span className={deadline.expired ? 'text-danger' : 'text-accent'}>⏱ {deadline.label}{!deadline.expired && ' left'}</span>

@@ -1,6 +1,9 @@
+import type { StartupLink } from '@agentipo/shared';
+
 export interface DemoStartup {
   name: string;
   targetUsdc: number;
+  equityBps: number;
   milestones: { title: string; releaseBps: number }[];
   startup: {
     name: string;
@@ -12,6 +15,7 @@ export interface DemoStartup {
     tokenAddress?: string;
     tokenNetwork: string;
     githubRepo?: string;
+    links: StartupLink[];
   };
 }
 
@@ -26,6 +30,7 @@ export const DEMO_STARTUPS: DemoStartup[] = [
   {
     name: 'Meridian Yield',
     targetUsdc: 5_000,
+    equityBps: 800,
     milestones,
     startup: {
       name: 'Meridian Yield',
@@ -36,11 +41,19 @@ export const DEMO_STARTUPS: DemoStartup[] = [
       treasuryAddress: '0x28C6c06298d514Db089934071355E5743bf21d60',
       tokenAddress: '0xc944e90c64b2c07662a292be6244bdf05cda44a7',
       tokenNetwork: 'mainnet',
+      githubRepo: 'graphprotocol/graph-node',
+      links: [
+        { kind: 'website', url: 'https://example.com/meridian' },
+        { kind: 'twitter', url: 'https://x.com/meridianyield' },
+        { kind: 'github', url: 'https://github.com/graphprotocol/graph-node' },
+        { kind: 'docs', url: 'https://example.com/meridian/docs' },
+      ],
     },
   },
   {
     name: 'Orbital Agents',
     targetUsdc: 2_500,
+    equityBps: 1_200,
     milestones,
     startup: {
       name: 'Orbital Agents',
@@ -50,11 +63,18 @@ export const DEMO_STARTUPS: DemoStartup[] = [
       treasuryAddress: '0x25F2226B597E8F9514B3F68F00f494cF4f286491',
       tokenAddress: '0x7fc66500c84a76ad7e9c93437bfc5ac33e2ddae9',
       tokenNetwork: 'mainnet',
+      links: [
+        { kind: 'website', url: 'https://example.com/orbital' },
+        { kind: 'twitter', url: 'https://x.com/orbitalagents' },
+        { kind: 'discord', url: 'https://discord.gg/orbital' },
+        { kind: 'explorer', url: 'https://etherscan.io/token/0x7fc66500c84a76ad7e9c93437bfc5ac33e2ddae9' },
+      ],
     },
   },
   {
     name: 'Ledgerline Payroll',
     targetUsdc: 1_000,
+    equityBps: 500,
     milestones: [{ title: 'Pilot with 5 companies', releaseBps: 10_000 }],
     startup: {
       name: 'Ledgerline Payroll',
@@ -63,6 +83,10 @@ export const DEMO_STARTUPS: DemoStartup[] = [
       founderAddress: '0x3333333333333333333333333333333333333333',
       treasuryAddress: '0xF977814e90dA44bFA03b6295A0616a897441aceC',
       tokenNetwork: 'mainnet',
+      links: [
+        { kind: 'website', url: 'https://example.com/ledgerline' },
+        { kind: 'linkedin', url: 'https://www.linkedin.com/company/ledgerline' },
+      ],
     },
   },
 ];

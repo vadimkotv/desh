@@ -27,6 +27,7 @@ contract RoundEscrowMilestonesTest is BaseTest {
             paid += expected;
             assertEq(usdc.balanceOf(founder), paid);
             assertEq(escrow.getRound(roundId).releasedCount, i + 1);
+            assertEq(escrow.getRound(roundId).released, paid);
         }
 
         assertEq(paid, raised);

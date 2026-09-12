@@ -4,7 +4,7 @@ pragma solidity ^0.8.24;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IRoundEscrow} from "./IRoundEscrow.sol";
-import {RevenueShare} from "./RevenueShare.sol";
+import {ExitReturns} from "./ExitReturns.sol";
 import {RoundEscrowBase} from "./RoundEscrowBase.sol";
 import {RoundTypes} from "./RoundTypes.sol";
 
@@ -12,9 +12,10 @@ import {RoundTypes} from "./RoundTypes.sol";
 /// @notice Milestone escrow for startup fundraising rounds settled in USDC on Arc.
 /// @dev Flow: platform creates a round -> investors `invest` until the deadline ->
 ///      anyone `finalize`s -> platform releases milestones (Funded) or investors `refund` (Failed).
-///      Funded rounds repay investors via `RevenueShare` (`distribute` / `claim`) up to a cap.
+///      Capital comes back only on a liquidity event, settled via `ExitReturns`
+///      (`settleExit` / `claim`) — acquisition, IPO, TGE or a contract payout.
 ///      All transfers follow checks-effects-interactions and are reentrancy-guarded.
-contract RoundEscrow is RevenueShare {
+contract RoundEscrow is ExitReturns {
     using SafeERC20 for IERC20;
 
     /// @param usdc_ The ERC-20 held in escrow (Arc testnet USDC: 0x3600…0000).
@@ -27,23 +28,23 @@ contract RoundEscrow is RevenueShare {
         uint256 target,
         uint64 deadline,
         uint16[] calldata milestoneBps,
-        uint16 returnCapBps
+        uint16 equityBps
     ) external onlyPlatform returns (uint256 roundId) {
         if (founder == address(0)) revert RoundTypes.ZeroAddress();
         if (target == 0) revert RoundTypes.ZeroAmount();
         if (deadline <= block.timestamp) revert RoundTypes.DeadlinePassed();
         _validateMilestones(milestoneBps);
-        _validateReturnCap(returnCapBps);
+        _validateEquity(equityBps);
 
         roundId = ++_roundCount;
         RoundTypes.Round storage round = _rounds[roundId];
         round.founder = founder;
         round.target = target;
         round.deadline = deadline;
-        round.returnCapBps = returnCapBps;
+        round.equityBps = equityBps;
         _milestones[roundId] = milestoneBps;
 
-        emit RoundTypes.RoundCreated(roundId, founder, target, deadline, returnCapBps);
+        emit RoundTypes.RoundCreated(roundId, founder, target, deadline, equityBps);
     }
 
     /// @inheritdoc IRoundEscrow
@@ -78,7 +79,8 @@ contract RoundEscrow is RevenueShare {
         uint256 amount = round.raised * schedule[index] / RoundTypes.BPS_DENOMINATOR;
 
         round.releasedCount = index + 1;
-        if (round.releasedCount == schedule.length) round.status = _closedStatus(round);
+        round.released += amount;
+        if (round.releasedCount == schedule.length) round.status = RoundTypes.RoundStatus.Closed;
 
         _USDC.safeTransfer(round.founder, amount);
         emit RoundTypes.MilestoneReleased(roundId, index, amount);

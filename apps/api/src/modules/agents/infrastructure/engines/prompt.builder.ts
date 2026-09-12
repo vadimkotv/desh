@@ -1,3 +1,4 @@
+import { entryValuation } from '@agentipo/shared';
 import type { DecisionInput } from '../../domain/decision-engine.port';
 
 export const SYSTEM_PROMPT = `You are an autonomous venture investment agent operating on AgentIPO.
@@ -22,7 +23,7 @@ export function buildUserPrompt(input: DecisionInput): string {
   return [
     `## Mandate\nThesis: ${mandate.thesis}\nSectors: ${mandate.sectors.join(', ')}\nRisk tolerance: ${mandate.riskTolerance}\nMinimum score: ${mandate.minScore}`,
     `USDC ceiling for THIS decision (already policy-bounded): ${maxAmountUsdc}`,
-    `## Round\nStartup: ${s.name} (${s.sector})\n${s.description}\nTarget: ${round.targetUsdc} USDC, raised so far: ${round.raisedUsdc} USDC, min ticket: ${round.minTicketUsdc}\nDeadline: ${round.deadline}\nReturn model: revenue share, investors repaid pro-rata from revenue up to ${round.returnCapBps / 100}% of principal (cap)\nMilestones: ${round.milestones.map((m) => `${m.title} (${m.releaseBps / 100}%)`).join('; ')}`,
+    `## Round\nStartup: ${s.name} (${s.sector})\n${s.description}\nTarget: ${round.targetUsdc} USDC, raised so far: ${round.raisedUsdc} USDC, min ticket: ${round.minTicketUsdc}\nDeadline: ${round.deadline}\nReturn model: equity. The round sells ${round.equityBps / 100}% of the startup at a ${entryValuation(round.targetUsdc, round.equityBps).toLocaleString('en-US')} USDC valuation; capital comes back ONLY on a liquidity event (acquisition, IPO, TGE or contract payout), pro-rata and uncapped. There is no revenue share, so judge whether this startup can plausibly reach such an exit, not whether it can service a repayment\nMilestones: ${round.milestones.map((m) => `${m.title} (${m.releaseBps / 100}%)`).join('; ')}`,
     `## Due-diligence report\nComposite score: ${report.score}/100, data coverage: ${report.dataCoverage}\n${report.summary}\n\nFindings:\n${findings}\n\nRaw signals:\n${signals}`,
     `## Context\n${rep}`,
     `Decide: INVEST (with amountUsdc in (0, ${maxAmountUsdc}]), WATCH, or PASS.`,

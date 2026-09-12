@@ -1,17 +1,17 @@
 import Link from 'next/link';
-import { capMultiplier, type Agent } from '@agentipo/shared';
+import type { Agent } from '@agentipo/shared';
 import { ActionPill } from '@/components/ui/action-pill';
 import { Badge } from '@/components/ui/badge';
 import { ConfidenceBar } from '@/components/ui/confidence-bar';
-import { num, upTo } from '@/lib/format';
+import { bpsShare, equityShareBps, num } from '@/lib/format';
 import type { RunView } from '@/lib/run-state';
 
-type SwarmTableProps = { views: RunView[]; agents: Agent[]; returnCapBps: number };
+type SwarmTableProps = { views: RunView[]; agents: Agent[]; round: { targetUsdc: number; equityBps: number } };
 
 const riskTone = { conservative: 'info', balanced: 'accent', aggressive: 'amber' } as const;
 
 // "The market forms from mandates": the same round, four mandates, four verdicts.
-export function SwarmTable({ views, agents, returnCapBps }: SwarmTableProps) {
+export function SwarmTable({ views, agents, round }: SwarmTableProps) {
   const byId = new Map(agents.map((a) => [a.id, a]));
   const rows = [...views].sort((a, b) => (b.decision?.amountUsdc ?? -1) - (a.decision?.amountUsdc ?? -1));
   return (
@@ -23,7 +23,7 @@ export function SwarmTable({ views, agents, returnCapBps }: SwarmTableProps) {
             <th className="py-2 pr-3 font-normal">mandate</th>
             <th className="py-2 pr-3 font-normal">action</th>
             <th className="py-2 pr-3 text-right font-normal">amount</th>
-            <th className="py-2 pr-3 text-right font-normal">up to (×{capMultiplier(returnCapBps)})</th>
+            <th className="py-2 pr-3 text-right font-normal">equity ({bpsShare(round.equityBps)} total)</th>
             <th className="py-2 pr-3 font-normal">confidence</th>
             <th className="py-2 pr-3 font-normal">engine</th>
           </tr>
@@ -49,7 +49,7 @@ export function SwarmTable({ views, agents, returnCapBps }: SwarmTableProps) {
                   {view.decision ? <ActionPill action={view.decision.action} size="xs" /> : gateFailed ? <Badge tone="danger">gate ✕</Badge> : view.status === 'running' ? <span className="live-dot text-agent">deciding…</span> : <span className="text-dim">no verdict</span>}
                 </td>
                 <td className="num py-2 pr-3 text-right text-bright">{view.decision && view.decision.amountUsdc > 0 ? `${num(view.decision.amountUsdc)} USDC` : '—'}</td>
-                <td className="num py-2 pr-3 text-right text-accent">{view.decision?.action === 'INVEST' && view.decision.amountUsdc > 0 ? `→ ${num(upTo(view.decision.amountUsdc, returnCapBps))}` : '—'}</td>
+                <td className="num py-2 pr-3 text-right text-accent">{view.decision?.action === 'INVEST' && view.decision.amountUsdc > 0 ? bpsShare(equityShareBps(view.decision.amountUsdc, round.targetUsdc, round.equityBps)) : '—'}</td>
                 <td className="py-2 pr-3">{view.decision ? <ConfidenceBar confidence={view.decision.confidence} width="w-16" /> : <span className="text-dim">—</span>}</td>
                 <td className="py-2 pr-3 text-muted">{view.decision?.engine ?? '—'}</td>
               </tr>

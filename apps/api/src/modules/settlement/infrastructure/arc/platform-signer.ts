@@ -27,7 +27,7 @@ export class PlatformSigner {
     return hash;
   }
 
-  // Ensures the escrow may pull `units` USDC from the platform wallet (used by distribute()).
+  // Ensures the escrow may pull `units` USDC from the platform wallet (used by settleExit()).
   async ensureUsdcAllowance(units: bigint): Promise<void> {
     const usdc = ARC_TESTNET.usdc as `0x${string}`;
     const allowance = await this.arc.public.readContract({

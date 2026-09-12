@@ -15,7 +15,7 @@ const kindTone: Record<AuditKind, BadgeTone> = {
   INVESTMENT_FAILED: 'danger',
   ROUND_FINALIZED: 'info',
   MILESTONE_RELEASED: 'accent',
-  REVENUE_DISTRIBUTED: 'amber',
+  EXIT_SETTLED: 'accent',
   RETURN_CLAIMED: 'accent',
 };
 
@@ -28,7 +28,7 @@ const dotTone: Record<AuditKind, string> = {
   INVESTMENT_FAILED: 'bg-danger',
   ROUND_FINALIZED: 'bg-info',
   MILESTONE_RELEASED: 'bg-accent',
-  REVENUE_DISTRIBUTED: 'bg-amber',
+  EXIT_SETTLED: 'bg-accent',
   RETURN_CLAIMED: 'bg-accent',
 };
 

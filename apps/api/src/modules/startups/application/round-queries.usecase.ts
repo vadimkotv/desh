@@ -3,6 +3,7 @@ import type { RoundStatus, Startup } from '@agentipo/shared';
 import {
   ROUND_REPOSITORY,
   type RoundDetail,
+  type RoundOnchainState,
   type RoundRepository,
 } from '../domain/round.repository';
 import { STARTUP_REPOSITORY, type StartupRepository } from '../domain/startup.repository';
@@ -47,10 +48,7 @@ export class RoundQueries {
     return this.rounds.addRaised(roundId, amountUsdc);
   }
 
-  syncOnchain(
-    roundId: string,
-    state: { status: RoundStatus; raisedUsdc: number; distributedUsdc: number },
-  ): Promise<void> {
+  syncOnchain(roundId: string, state: RoundOnchainState): Promise<void> {
     return this.rounds.syncOnchain(roundId, state);
   }
 }

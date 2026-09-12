@@ -1,6 +1,6 @@
 export const ESCROW_READER = Symbol('ESCROW_READER');
 
-export type OnchainRoundStatus = 'Open' | 'Funded' | 'Failed' | 'Closed' | 'Repaid';
+export type OnchainRoundStatus = 'Open' | 'Funded' | 'Failed' | 'Closed' | 'Exited';
 
 export interface OnchainRound {
   onchainRoundId: number;
@@ -13,9 +13,10 @@ export interface OnchainRound {
   releasedCount: number;
   investorCount: number;
   milestoneBps: number[];
-  returnCapBps: number;
-  capUsdc: number;
-  distributedUsdc: number;
+  equityBps: number;
+  entryValuationUsdc: number;
+  releasedUsdc: number;
+  proceedsUsdc: number;
 }
 
 export interface InvestorPosition {

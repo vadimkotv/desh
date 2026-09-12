@@ -26,6 +26,7 @@ export class RunRoundStep {
       startup: round.startup.name,
       targetUsdc: round.targetUsdc,
       raisedUsdc: round.raisedUsdc,
+      equityBps: round.equityBps,
     });
     try {
       const acquired = await this.acquire.run(agent, round.id, reporter);

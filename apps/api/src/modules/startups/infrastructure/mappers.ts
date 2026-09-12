@@ -1,4 +1,4 @@
-import type { Investment, Milestone, Round, Startup } from '@agentipo/shared';
+import type { Investment, Milestone, Round, Startup, StartupLink } from '@agentipo/shared';
 import type { Investment as DbInvestment, Round as DbRound, Startup as DbStartup } from '../../../generated/prisma/client';
 import { decimalToNumber } from '../../../common/money';
 import type { RoundDetail } from '../domain/round.repository';
@@ -14,6 +14,7 @@ export const toStartup = (s: DbStartup): Startup => ({
   tokenAddress: s.tokenAddress ?? undefined,
   tokenNetwork: s.tokenNetwork,
   githubRepo: s.githubRepo ?? undefined,
+  links: (s.links ?? []) as StartupLink[],
   createdAt: s.createdAt.toISOString(),
 });
 
@@ -41,8 +42,9 @@ export const toRound = (r: DbRound): Round => ({
   deadline: r.deadline.toISOString(),
   status: r.status,
   milestones: r.milestones as Milestone[],
-  returnCapBps: r.returnCapBps,
-  distributedUsdc: decimalToNumber(r.distributedUsdc),
+  equityBps: r.equityBps,
+  releasedUsdc: decimalToNumber(r.releasedUsdc),
+  proceedsUsdc: decimalToNumber(r.proceedsUsdc),
 });
 
 export const toRoundDetail = (

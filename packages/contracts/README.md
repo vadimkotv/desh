@@ -1,60 +1,62 @@
 # @agentipo/contracts
 
 Foundry package for **`RoundEscrow`** — a milestone escrow for startup fundraising rounds
-settled in USDC on [Arc testnet](https://testnet.arcscan.app).
+settled in USDC on [Arc testnet](https://testnet.arcscan.app). Rounds sell equity and pay
+investors back on a liquidity event — acquisition, IPO, TGE or contract payout.
 
 ## How it works
 
-1. The **platform** (AgentIPO API) calls `createRound(founder, target, deadline, milestoneBps, returnCapBps)`.
-   Milestones are basis-point tranches summing to `10_000` (1–20 entries); `returnCapBps` is the
-   investor return cap (see [Revenue-share returns](#revenue-share-returns-rbf)).
+1. The **platform** (AgentIPO API) calls `createRound(founder, target, deadline, milestoneBps, equityBps)`.
+   Milestones are basis-point tranches summing to `10_000` (1–20 entries); `equityBps` is the stake
+   the round sells (see [Exit returns](#exit-returns)).
 2. Anyone (investor agents) calls `invest(roundId, amount)` after approving USDC. Oversubscription is allowed.
 3. Anyone calls `finalize(roundId)` once `raised >= target` **or** the deadline passed:
    - `Funded` → the platform calls `releaseMilestone(roundId)` per tranche (`raised * bps / 10_000` to the founder);
      after the last tranche the round becomes `Closed`.
    - `Failed` → each investor calls `refund(roundId)` to get their contribution back.
-4. Once `Funded`, revenue flows back to investors through `distribute` / `claim` until the return
-   cap is reached, at which point the round becomes `Repaid`.
+4. Capital comes back only when the startup has a **liquidity event**: `settleExit` pays proceeds
+   into the round, the status becomes `Exited`, and investors `claim` their pro-rata share.
 
-## Revenue-share returns (RBF)
+## Exit returns
 
-Rounds are **revenue-based financing**: instead of equity, investors are owed a share of the
-company's revenue until they have received a fixed multiple of what the round raised.
+Rounds sell **equity**, not a revenue stream. Investors are paid when — and only when — the
+startup exits: an acquisition, an IPO, a token generation event, or a contract payout.
 
-- **Return cap.** `returnCapBps` is fixed at creation, between `10_000` (1.0x) and `50_000` (5.0x),
-  else `InvalidReturnCap()`. The USDC cap is `returnCapOf(roundId) = raised * returnCapBps / 10_000`
-  (computed on `raised`, so oversubscription raises the cap proportionally).
-- **`distribute(roundId, amount)`** — anyone (the founder or a revenue router) pushes `amount` USDC
-  into the round after approving the escrow. Allowed while `Funded` or `Closed`; `amount > 0`;
-  reverts with `ExceedsReturnCap()` if `distributed + amount` would exceed the cap.
-  Emits `RevenueDistributed(roundId, from, amount, totalDistributed)`.
-- **`claim(roundId)`** — an investor withdraws their outstanding share. Allowed while `Funded`,
-  `Closed` or `Repaid`; reverts with `NothingToClaim()` when nothing is owed.
+- **Stake sold.** `equityBps` is fixed at creation, between `10` (0.1%) and `5_000` (50%), else
+  `InvalidEquity()`. It fixes the price of the round: `entryValuationOf(roundId) = raised * 10_000 / equityBps`
+  (computed on `raised`, so oversubscription raises the valuation proportionally).
+- **`settleExit(roundId, kind, valuation, proceeds, evidenceUri)`** — the platform **or** the round's
+  founder pays `proceeds` USDC into the claim pool after approving the escrow; anyone else gets
+  `NotAuthorized()`. `kind` is `0 Acquisition, 1 IPO, 2 TGE, 3 Contract`; `valuation` and `evidenceUri`
+  record the headline number and the proof. Allowed while `Funded`, `Closed` or already `Exited`
+  (follow-on tranches and earn-outs); `proceeds > 0`. There is **no cap** — an exit can return any
+  multiple. Emits `ExitSettled(roundId, kind, valuation, proceeds, totalProceeds, evidenceUri)`.
+- **Undrawn escrow.** The first settlement on a `Funded` round freezes the milestone schedule, so
+  `raised − released` — money the founder never drew down — joins the claim pool instead of being
+  stranded.
+- **`claim(roundId)`** — an investor withdraws their outstanding share. Allowed unless the round is
+  `Open` or `Failed`; reverts with `NothingToClaim()` when nothing is owed.
   Emits `Claimed(roundId, investor, amount)` and returns the amount.
-- **Views.** `claimableOf(roundId, investor) = distributed * contribution / raised − claimedOf(...)`
+- **Views.** `claimableOf(roundId, investor) = proceeds * contribution / raised − claimedOf(...)`
   (0 while nothing was raised); `claimedOf(roundId, investor)` is the cumulative amount withdrawn.
-  Shares are floored per investor, so the sum of claims never exceeds `distributed`; any sub-unit
-  dust is picked up by later distributions.
-- **`Repaid`.** The terminal status once **both** every milestone has been released **and**
-  `distributed == returnCapOf(roundId)`. It is set by whichever of `distribute` / `releaseMilestone`
-  completes the pair. No further distributions are accepted; claims remain open indefinitely.
-  A `Funded` round that hits the cap stays `Funded` until the platform releases its last tranche.
-- Failed rounds are untouched: `distribute` and `claim` revert with `InvalidStatus()` and `refund`
+  Shares are floored per investor, so the sum of claims never exceeds the pool; any sub-unit dust is
+  picked up by later settlements.
+- Failed rounds are untouched: `settleExit` and `claim` revert with `InvalidStatus()` and `refund`
   works as before.
 
 ```
-Open ──finalize (target met)──▶ Funded ──releaseMilestone × N──▶ Closed ──distribute (cap hit)──▶ Repaid
-  │                               └──distribute (cap hit)──▶ Funded ──releaseMilestone (last)──▶ Repaid
+Open ──finalize (target met)──▶ Funded ──releaseMilestone × N──▶ Closed ──settleExit──▶ Exited
+  │                               └──settleExit (undrawn escrow joins the pool)──▶ Exited
   └──finalize (deadline passed)──▶ Failed ──refund──▶ investors get contributions back
 ```
 
 ```
-src/RoundTypes.sol       enum, struct, events, errors (library)
-src/IRevenueShare.sol    revenue-share interface (distribute / claim / views)
-src/IRoundEscrow.sol     public interface (extends IOperated, IRevenueShare)
+src/RoundTypes.sol       enums, struct, events, errors (library)
+src/IExitReturns.sol     exit-returns interface (settleExit / claim / views)
+src/IRoundEscrow.sol     public interface (extends IOperated, IExitReturns)
 src/Operated.sol         minimal "platform" operator mixin + IOperated
 src/RoundEscrowBase.sol  storage, views, validation helpers
-src/RevenueShare.sol     revenue distribution + pro-rata claims (CEI + ReentrancyGuard)
+src/ExitReturns.sol      exit settlement + pro-rata claims (CEI + ReentrancyGuard)
 src/RoundEscrow.sol      round lifecycle logic (CEI + ReentrancyGuard)
 src/test/MockUSDC.sol    6-decimal mintable ERC-20 for tests / local demos
 script/Deploy.s.sol      deployment script
@@ -125,17 +127,17 @@ forge verify-contract <ESCROW_ADDRESS> src/RoundEscrow.sol:RoundEscrow \
 
 ```bash
 export ESCROW=0x... RPC=https://rpc.testnet.arc.io PK=$DEPLOYER_PRIVATE_KEY
-cast send $ESCROW "createRound(address,uint256,uint64,uint16[],uint16)" $FOUNDER 100000000 $(( $(date +%s) + 604800 )) "[4000,3000,3000]" 15000 --rpc-url $RPC --private-key $PK
+cast send $ESCROW "createRound(address,uint256,uint64,uint16[],uint16)" $FOUNDER 100000000 $(( $(date +%s) + 604800 )) "[4000,3000,3000]" 800 --rpc-url $RPC --private-key $PK
 cast send 0x3600000000000000000000000000000000000000 "approve(address,uint256)" $ESCROW 100000000 --rpc-url $RPC --private-key $PK
 cast send $ESCROW "invest(uint256,uint256)" 1 100000000 --rpc-url $RPC --private-key $PK
 cast send $ESCROW "finalize(uint256)" 1 --rpc-url $RPC --private-key $PK
-cast call $ESCROW "getRound(uint256)((address,uint256,uint256,uint64,uint8,uint16,uint16,uint256))" 1 --rpc-url $RPC
-# after the round is Funded: push revenue in and claim it back
-cast send 0x3600000000000000000000000000000000000000 "approve(address,uint256)" $ESCROW 10000000 --rpc-url $RPC --private-key $PK
-cast send $ESCROW "distribute(uint256,uint256)" 1 10000000 --rpc-url $RPC --private-key $PK
+cast call $ESCROW "getRound(uint256)((address,uint256,uint256,uint64,uint8,uint16,uint16,uint256,uint256))" 1 --rpc-url $RPC
+# after the round is Funded: settle an acquisition and claim the proceeds
+cast send 0x3600000000000000000000000000000000000000 "approve(address,uint256)" $ESCROW 800000000 --rpc-url $RPC --private-key $PK
+cast send $ESCROW "settleExit(uint256,uint8,uint256,uint256,string)" 1 0 10000000000 800000000 "https://example.com/press" --rpc-url $RPC --private-key $PK
 cast call $ESCROW "claimableOf(uint256,address)(uint256)" 1 $INVESTOR --rpc-url $RPC
 cast send $ESCROW "claim(uint256)" 1 --rpc-url $RPC --private-key $INVESTOR_PK
 ```
 
-`getRound` returns `(founder, target, raised, deadline, status, releasedCount, returnCapBps, distributed)`
-where `status` is `0 Open, 1 Funded, 2 Failed, 3 Closed, 4 Repaid`.
+`getRound` returns `(founder, target, raised, deadline, status, releasedCount, equityBps, released, proceeds)`
+where `status` is `0 Open, 1 Funded, 2 Failed, 3 Closed, 4 Exited`.

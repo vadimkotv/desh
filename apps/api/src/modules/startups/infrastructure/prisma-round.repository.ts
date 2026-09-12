@@ -2,7 +2,12 @@ import { Injectable } from '@nestjs/common';
 import type { CreateRound, RoundStatus } from '@agentipo/shared';
 import { asJson } from '../../../common/prisma/json';
 import { PrismaService } from '../../../common/prisma/prisma.service';
-import type { RoundDetail, RoundOnchainRef, RoundRepository } from '../domain/round.repository';
+import type {
+  RoundDetail,
+  RoundOnchainRef,
+  RoundOnchainState,
+  RoundRepository,
+} from '../domain/round.repository';
 import { toRoundDetail } from './mappers';
 
 const include = { startup: true, investments: { orderBy: { createdAt: 'desc' as const } } };
@@ -19,7 +24,7 @@ export class PrismaRoundRepository implements RoundRepository {
         minTicketUsdc: input.minTicketUsdc,
         deadline: new Date(input.deadline),
         milestones: asJson(input.milestones),
-        returnCapBps: input.returnCapBps,
+        equityBps: input.equityBps,
         onchainRoundId: onchain?.onchainRoundId,
         escrowAddress: onchain?.escrowAddress,
       },
@@ -79,10 +84,7 @@ export class PrismaRoundRepository implements RoundRepository {
     await this.prisma.round.update({ where: { id }, data: { status } });
   }
 
-  async syncOnchain(
-    id: string,
-    state: { status: RoundStatus; raisedUsdc: number; distributedUsdc: number },
-  ): Promise<void> {
+  async syncOnchain(id: string, state: RoundOnchainState): Promise<void> {
     await this.prisma.round.update({ where: { id }, data: state });
   }
 }

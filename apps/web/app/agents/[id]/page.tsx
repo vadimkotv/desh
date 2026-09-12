@@ -33,7 +33,7 @@ export default async function AgentPage({ params }: AgentPageProps) {
   const receipts = listOrEmpty(receiptsResult).items.filter((r) => r.agentId === agent.id);
   const rounds = listOrEmpty(roundsResult).items;
   const roundNames = new Map(rounds.map((r) => [r.id, r.startup.name]));
-  const roundCaps = new Map(rounds.map((r) => [r.id, r.returnCapBps]));
+  const roundTerms = new Map(rounds.map((r) => [r.id, { targetUsdc: r.targetUsdc, equityBps: r.equityBps }]));
   const confirmed = decisions.filter((d) => d.investment?.status === 'CONFIRMED');
   const invested = confirmed.reduce((s, d) => s + (d.investment?.amountUsdc ?? 0), 0);
   const claimed = confirmed.reduce((s, d) => s + (d.investment?.claimedUsdc ?? 0), 0);
@@ -86,7 +86,7 @@ export default async function AgentPage({ params }: AgentPageProps) {
               tone="agent"
             />
           </div>
-          <DecisionTimeline decisions={decisions} roundNames={roundNames} roundCaps={roundCaps} />
+          <DecisionTimeline decisions={decisions} roundNames={roundNames} roundTerms={roundTerms} />
         </div>
         <div className="flex flex-col gap-4">
           <IdentityPanel agent={agent} />

@@ -131,7 +131,7 @@
         "internalType": "uint16[]"
       },
       {
-        "name": "returnCapBps",
+        "name": "equityBps",
         "type": "uint16",
         "internalType": "uint16"
       }
@@ -147,21 +147,22 @@
   },
   {
     "type": "function",
-    "name": "distribute",
+    "name": "entryValuationOf",
     "inputs": [
       {
         "name": "roundId",
         "type": "uint256",
         "internalType": "uint256"
-      },
+      }
+    ],
+    "outputs": [
       {
-        "name": "amount",
+        "name": "",
         "type": "uint256",
         "internalType": "uint256"
       }
     ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
+    "stateMutability": "view"
   },
   {
     "type": "function",
@@ -242,12 +243,17 @@
             "internalType": "uint16"
           },
           {
-            "name": "returnCapBps",
+            "name": "equityBps",
             "type": "uint16",
             "internalType": "uint16"
           },
           {
-            "name": "distributed",
+            "name": "released",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "proceeds",
             "type": "uint256",
             "internalType": "uint256"
           }
@@ -334,25 +340,6 @@
   },
   {
     "type": "function",
-    "name": "returnCapOf",
-    "inputs": [
-      {
-        "name": "roundId",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
     "name": "roundCount",
     "inputs": [],
     "outputs": [
@@ -372,6 +359,39 @@
         "name": "newPlatform",
         "type": "address",
         "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "settleExit",
+    "inputs": [
+      {
+        "name": "roundId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "kind",
+        "type": "uint8",
+        "internalType": "enum RoundTypes.ExitKind"
+      },
+      {
+        "name": "valuation",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "proceeds",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "evidenceUri",
+        "type": "string",
+        "internalType": "string"
       }
     ],
     "outputs": [],
@@ -411,6 +431,49 @@
         "type": "uint256",
         "indexed": false,
         "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "ExitSettled",
+    "inputs": [
+      {
+        "name": "roundId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "kind",
+        "type": "uint8",
+        "indexed": true,
+        "internalType": "enum RoundTypes.ExitKind"
+      },
+      {
+        "name": "valuation",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "proceeds",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "totalProceeds",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "evidenceUri",
+        "type": "string",
+        "indexed": false,
+        "internalType": "string"
       }
     ],
     "anonymous": false
@@ -511,37 +574,6 @@
   },
   {
     "type": "event",
-    "name": "RevenueDistributed",
-    "inputs": [
-      {
-        "name": "roundId",
-        "type": "uint256",
-        "indexed": true,
-        "internalType": "uint256"
-      },
-      {
-        "name": "from",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      },
-      {
-        "name": "amount",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      },
-      {
-        "name": "totalDistributed",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
     "name": "RoundCreated",
     "inputs": [
       {
@@ -569,7 +601,7 @@
         "internalType": "uint64"
       },
       {
-        "name": "returnCapBps",
+        "name": "equityBps",
         "type": "uint16",
         "indexed": false,
         "internalType": "uint16"
@@ -603,17 +635,12 @@
   },
   {
     "type": "error",
-    "name": "ExceedsReturnCap",
+    "name": "InvalidEquity",
     "inputs": []
   },
   {
     "type": "error",
     "name": "InvalidMilestones",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "InvalidReturnCap",
     "inputs": []
   },
   {
@@ -624,6 +651,11 @@
   {
     "type": "error",
     "name": "InvalidStatus",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NotAuthorized",
     "inputs": []
   },
   {

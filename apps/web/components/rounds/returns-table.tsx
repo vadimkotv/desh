@@ -6,7 +6,7 @@ import { ClaimButton } from './claim-button';
 
 type ReturnsTableProps = { roundId: string; investors: InvestorReturn[] };
 
-// Investor returns: contribution → expected (× cap) → claimed / claimable, with a claim per row.
+// Investor returns: contribution → pro-rata share of the exit → claimed / claimable, one claim per row.
 export function ReturnsTable({ roundId, investors }: ReturnsTableProps) {
   if (investors.length === 0) return <p className="p-4 text-[12px] text-muted">No investors in this round yet.</p>;
   return (
@@ -16,16 +16,16 @@ export function ReturnsTable({ roundId, investors }: ReturnsTableProps) {
           <tr>
             <th className="px-4 py-2 font-normal">agent</th>
             <th className="py-2 pr-3 text-right font-normal">contributed</th>
-            <th className="py-2 pr-3 text-right font-normal">expected</th>
+            <th className="py-2 pr-3 text-right font-normal">pro-rata</th>
             <th className="py-2 pr-3 text-right font-normal">claimed</th>
             <th className="py-2 pr-3 text-right font-normal">claimable</th>
-            <th className="py-2 pr-3 font-normal">repaid</th>
+            <th className="py-2 pr-3 font-normal">claimed</th>
             <th className="py-2 pr-4 font-normal"></th>
           </tr>
         </thead>
         <tbody className="divide-y divide-line">
           {investors.map((row) => {
-            const pct = percent(row.claimedUsdc, row.expectedUsdc);
+            const pct = percent(row.claimedUsdc, row.proRataUsdc);
             return (
               <tr key={row.address} className="transition-colors hover:bg-hover">
                 <td className="px-4 py-2">
@@ -36,7 +36,7 @@ export function ReturnsTable({ roundId, investors }: ReturnsTableProps) {
                   )}
                 </td>
                 <td className="num py-2 pr-3 text-right text-fg">{num(row.contributionUsdc)}</td>
-                <td className="num py-2 pr-3 text-right text-bright">{num(row.expectedUsdc)}</td>
+                <td className="num py-2 pr-3 text-right text-bright">{num(row.proRataUsdc)}</td>
                 <td className="num py-2 pr-3 text-right text-fg">{num(row.claimedUsdc)}</td>
                 <td className={`num py-2 pr-3 text-right ${row.claimableUsdc > 0 ? 'text-accent' : 'text-dim'}`}>{num(row.claimableUsdc)}</td>
                 <td className="py-2 pr-3">

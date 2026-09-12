@@ -1,35 +1,25 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState, type ReactNode } from 'react';
+import { type ReactNode } from 'react';
 import { ActionButton } from '@/components/ui/action-button';
 import { Button } from '@/components/ui/button';
 import { Panel } from '@/components/ui/panel';
 import { api } from '@/lib/api';
-import { num } from '@/lib/format';
+import { bpsShare } from '@/lib/format';
 import type { RoundDetail } from '@/lib/types';
+import { ExitForm } from './exit-form';
 
-type OperatorActionsProps = { round: RoundDetail; releasedCount: number; capUsdc: number };
+type OperatorActionsProps = { round: RoundDetail; releasedCount: number };
 
 // Dev/operator controls for the escrow lifecycle. Every call goes on-chain; a
 // contract revert comes back as 409 and its `reason` is shown next to the button.
-export function OperatorActions({ round, releasedCount, capUsdc }: OperatorActionsProps) {
+export function OperatorActions({ round, releasedCount }: OperatorActionsProps) {
   const router = useRouter();
-  const remaining = Math.max(0, capUsdc - round.distributedUsdc);
-  const [amount, setAmount] = useState(remaining > 0 ? Number(remaining.toFixed(6)) : 0);
-  const [dist, setDist] = useState<{ busy: boolean; text: string | null; error: boolean }>({ busy: false, text: null, error: false });
   const pastDeadline = new Date(round.deadline).getTime() <= Date.now();
   const canFinalize = round.status === 'OPEN' && (round.raisedUsdc >= round.targetUsdc || pastDeadline);
   const next = round.milestones[releasedCount];
   const allReleased = releasedCount >= round.milestones.length;
-
-  async function distribute() {
-    setDist({ busy: true, text: null, error: false });
-    const result = await api.distribute(round.id, amount);
-    if (!result.ok) return setDist({ busy: false, text: result.error, error: true });
-    setDist({ busy: false, text: `distributed ${num(amount)} USDC · ${result.data.status}`, error: false });
-    router.refresh();
-  }
 
   return (
     <Panel eyebrow="operator · dev" title="Escrow lifecycle" tone="amber" action={<span className="font-mono text-[10px] text-dim">on-chain · reverts shown inline</span>}>
@@ -48,20 +38,8 @@ export function OperatorActions({ round, releasedCount, capUsdc }: OperatorActio
             <ActionButton label="Release next" pendingLabel="Releasing…" size="xs" run={() => api.releaseMilestone(round.id)} successText={() => 'released'} onSuccess={() => router.refresh()} />
           )}
         </Row>
-        <Row label="3 · distribute revenue" hint={`remaining to cap ${num(remaining)} USDC`}>
-          <span className="inline-flex flex-wrap items-center gap-2">
-            <input
-              type="number"
-              min={0}
-              step="any"
-              value={amount}
-              onChange={(e) => setAmount(Number(e.target.value))}
-              className="w-28 rounded-md border border-line bg-ink px-2 py-1 font-mono text-[11px] text-fg outline-none focus:border-amber/60"
-              aria-label="amount in USDC"
-            />
-            <Button size="xs" variant="primary" busy={dist.busy} onClick={distribute} disabled={amount <= 0}>Distribute</Button>
-            {dist.text && <span className={`font-mono text-[10px] ${dist.error ? 'text-danger' : 'text-accent'}`}>{dist.text}</span>}
-          </span>
+        <Row label="3 · settle exit" hint={`investors hold ${bpsShare(round.equityBps)} — enter the headline valuation`}>
+          <ExitForm roundId={round.id} equityBps={round.equityBps} raisedUsdc={round.raisedUsdc} />
         </Row>
         <Row label="sync" hint="re-read escrow state from Arc">
           <ActionButton label="Sync" size="xs" run={() => api.syncRound(round.id)} successText={(r) => `status ${r.status}`} onSuccess={() => router.refresh()} />

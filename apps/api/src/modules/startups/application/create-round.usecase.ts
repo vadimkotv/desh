@@ -27,7 +27,7 @@ export class CreateRoundUseCase {
         targetUsdc: input.targetUsdc,
         deadline: new Date(input.deadline),
         milestoneBps: input.milestones.map((m) => m.releaseBps),
-        returnCapBps: input.returnCapBps,
+        equityBps: input.equityBps,
       });
       this.log.log(`Round created on Arc escrow: id=${onchain.onchainRoundId}`);
     }

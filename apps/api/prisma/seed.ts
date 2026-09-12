@@ -15,7 +15,7 @@ async function main(): Promise<void> {
     if (await prisma.startup.findFirst({ where: { name: demo.name } })) continue;
     const startup = await prisma.startup.create({ data: demo.startup });
     await prisma.round.create({
-      data: { startupId: startup.id, targetUsdc: demo.targetUsdc, minTicketUsdc: 10, deadline, milestones: demo.milestones },
+      data: { startupId: startup.id, targetUsdc: demo.targetUsdc, equityBps: demo.equityBps, minTicketUsdc: 10, deadline, milestones: demo.milestones },
     });
     console.log(`seeded startup ${startup.name}`);
   }

@@ -14,8 +14,8 @@ export interface ClaimResult {
   chainId: number;
 }
 
-// The agent pulls its revenue-share returns from the escrow with its own key. The claimed
-// amount is measured on-chain (claimedOf before/after) so Circle and local rails agree.
+// The agent pulls its share of the exit proceeds from the escrow with its own key. The
+// claimed amount is measured on-chain (claimedOf before/after) so both rails agree.
 @Injectable()
 export class ClaimReturnsUseCase {
   private readonly log = new Logger(ClaimReturnsUseCase.name);

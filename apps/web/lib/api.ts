@@ -49,7 +49,7 @@ export const api = {
   rounds: () => get<T.RoundDetail[]>('/rounds'),
   round: (id: string) => get<T.RoundDetail>(`/rounds/${id}`),
   roundReturns: (id: string) => get<S.RoundReturns>(`/rounds/${id}/returns`),
-  distributions: (id: string) => get<S.Distribution[]>(`/rounds/${id}/distributions`),
+  exits: (id: string) => get<S.ExitEvent[]>(`/rounds/${id}/exits`),
   ddPreview: (roundId: string) => get<S.DueDiligencePreview>(`/due-diligence/rounds/${roundId}`),
   ddReport: (roundId: string) =>
     get<S.DueDiligenceReport>(`/due-diligence/rounds/${roundId}/report`),
@@ -57,6 +57,7 @@ export const api = {
     get<T.DdHistoryPoint[]>(`/due-diligence/rounds/${roundId}/history`),
   signals: (startupId: string) => get<S.Signal[]>(`/data-room/startups/${startupId}/signals`),
   agents: () => get<S.Agent[]>('/agents'),
+  reviewFeed: () => get<S.ReviewFeedItem[]>('/agents/feed'),
   agent: (id: string) => get<S.Agent>(`/agents/${id}`),
   agentDecisions: (id: string) => get<S.Decision[]>(`/agents/${id}/decisions`),
   decisions: () => get<S.Decision[]>('/decisions'),
@@ -77,8 +78,7 @@ export const api = {
     post<T.ClaimResult>(`/agents/${agentId}/claim?roundId=${roundId}`),
   finalizeRound: (id: string) => post<T.RoundDetail>(`/rounds/${id}/finalize`),
   releaseMilestone: (id: string) => post<T.RoundDetail>(`/rounds/${id}/milestones/release`),
-  distribute: (id: string, amountUsdc: number) =>
-    post<T.RoundDetail>(`/rounds/${id}/distribute`, { amountUsdc }),
+  settleExit: (id: string, exit: S.SettleExit) => post<T.RoundDetail>(`/rounds/${id}/exit`, exit),
   syncRound: (id: string) => post<T.RoundDetail>(`/rounds/${id}/sync`),
   refreshDataRoom: (startupId: string) => post<unknown>(`/data-room/startups/${startupId}/refresh`),
   generateReport: (roundId: string) =>

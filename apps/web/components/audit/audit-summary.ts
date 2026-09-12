@@ -24,10 +24,10 @@ export function auditSummary(entry: AuditEntry): string {
       return `⚑ round finalized · ${num(n(p.raisedUsdc))} USDC locked in escrow #${n(p.onchainId)}`;
     case 'MILESTONE_RELEASED':
       return `⛳ milestone ${n(p.index) + 1} “${s(p.milestone)}” released to founder`;
-    case 'REVENUE_DISTRIBUTED':
-      return `↻ ${num(n(p.amountUsdc))} USDC revenue routed to escrow · ${num(n(p.distributedUsdc))} total · ${s(p.status)}`;
+    case 'EXIT_SETTLED':
+      return `★ ${s(p.kind).toLowerCase()} settled · ${num(n(p.proceedsUsdc))} USDC to investors · pool ${num(n(p.proceedsPoolUsdc))} · ${s(p.status)}`;
     case 'RETURN_CLAIMED':
-      return `↑ claimed ${num(n(p.claimedUsdc))} USDC return · ${num(n(p.totalClaimedUsdc))} total`;
+      return `↑ claimed ${num(n(p.claimedUsdc))} USDC of exit proceeds · ${num(n(p.totalClaimedUsdc))} total`;
     default:
       return entry.kind;
   }

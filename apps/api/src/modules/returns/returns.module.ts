@@ -6,12 +6,12 @@ import { StartupsModule } from '../startups/startups.module';
 import { ClaimReturnsUseCase } from './application/claim-returns.usecase';
 import { RoundLifecycleUseCase } from './application/round-lifecycle.usecase';
 import { RoundReturnsQuery } from './application/round-returns.query';
-import { DISTRIBUTION_REPOSITORY } from './domain/distribution.repository';
-import { PrismaDistributionRepository } from './infrastructure/prisma-distribution.repository';
+import { EXIT_EVENT_REPOSITORY } from './domain/exit-event.repository';
+import { PrismaExitEventRepository } from './infrastructure/prisma-exit-event.repository';
 import { ReturnsController } from './presentation/returns.controller';
 
-// Revenue-based financing: after a round is funded, revenue flows into the escrow and
-// agents claim their pro-rata share up to the return cap.
+// Exit-based returns: a funded round pays nothing until a liquidity event is settled
+// into the escrow, after which agents claim their pro-rata share of the proceeds.
 @Module({
   imports: [StartupsModule, SettlementModule, AgentsModule, AuditModule],
   controllers: [ReturnsController],
@@ -19,7 +19,7 @@ import { ReturnsController } from './presentation/returns.controller';
     RoundLifecycleUseCase,
     ClaimReturnsUseCase,
     RoundReturnsQuery,
-    { provide: DISTRIBUTION_REPOSITORY, useClass: PrismaDistributionRepository },
+    { provide: EXIT_EVENT_REPOSITORY, useClass: PrismaExitEventRepository },
   ],
 })
 export class ReturnsModule {}

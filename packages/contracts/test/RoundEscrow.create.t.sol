@@ -14,7 +14,7 @@ contract RoundEscrowCreateTest is BaseTest {
 
     function test_createRound_storesStateAndEmits() public {
         vm.expectEmit(true, true, true, true);
-        emit RoundTypes.RoundCreated(1, founder, TARGET, deadline, CAP_BPS);
+        emit RoundTypes.RoundCreated(1, founder, TARGET, deadline, EQUITY_BPS);
 
         uint256 roundId = _createRound();
 
@@ -27,8 +27,9 @@ contract RoundEscrowCreateTest is BaseTest {
         assertEq(round.deadline, deadline);
         assertEq(uint8(round.status), uint8(RoundTypes.RoundStatus.Open));
         assertEq(round.releasedCount, 0);
-        assertEq(round.returnCapBps, CAP_BPS);
-        assertEq(round.distributed, 0);
+        assertEq(round.equityBps, EQUITY_BPS);
+        assertEq(round.released, 0);
+        assertEq(round.proceeds, 0);
 
         uint16[] memory bps = escrow.getMilestones(roundId);
         assertEq(bps.length, 3);
@@ -44,25 +45,25 @@ contract RoundEscrowCreateTest is BaseTest {
     function test_createRound_revertsForNonPlatform() public {
         vm.prank(stranger);
         vm.expectRevert(RoundTypes.NotPlatform.selector);
-        escrow.createRound(founder, TARGET, deadline, _milestones(), CAP_BPS);
+        escrow.createRound(founder, TARGET, deadline, _milestones(), EQUITY_BPS);
     }
 
     function test_createRound_revertsOnZeroFounder() public {
         vm.prank(platform);
         vm.expectRevert(RoundTypes.ZeroAddress.selector);
-        escrow.createRound(address(0), TARGET, deadline, _milestones(), CAP_BPS);
+        escrow.createRound(address(0), TARGET, deadline, _milestones(), EQUITY_BPS);
     }
 
     function test_createRound_revertsOnZeroTarget() public {
         vm.prank(platform);
         vm.expectRevert(RoundTypes.ZeroAmount.selector);
-        escrow.createRound(founder, 0, deadline, _milestones(), CAP_BPS);
+        escrow.createRound(founder, 0, deadline, _milestones(), EQUITY_BPS);
     }
 
     function test_createRound_revertsOnPastDeadline() public {
         vm.prank(platform);
         vm.expectRevert(RoundTypes.DeadlinePassed.selector);
-        escrow.createRound(founder, TARGET, uint64(block.timestamp), _milestones(), CAP_BPS);
+        escrow.createRound(founder, TARGET, uint64(block.timestamp), _milestones(), EQUITY_BPS);
     }
 
     function test_createRound_revertsWhenBpsDoNotSumTo10000() public {
@@ -70,13 +71,13 @@ contract RoundEscrowCreateTest is BaseTest {
         (bps[0], bps[1]) = (5_000, 4_000);
         vm.prank(platform);
         vm.expectRevert(RoundTypes.InvalidMilestones.selector);
-        escrow.createRound(founder, TARGET, deadline, bps, CAP_BPS);
+        escrow.createRound(founder, TARGET, deadline, bps, EQUITY_BPS);
     }
 
     function test_createRound_revertsOnEmptyOrTooManyMilestones() public {
         vm.prank(platform);
         vm.expectRevert(RoundTypes.InvalidMilestones.selector);
-        escrow.createRound(founder, TARGET, deadline, new uint16[](0), CAP_BPS);
+        escrow.createRound(founder, TARGET, deadline, new uint16[](0), EQUITY_BPS);
 
         uint16[] memory bps = new uint16[](21);
         for (uint256 i; i < 20; ++i) {
@@ -84,7 +85,7 @@ contract RoundEscrowCreateTest is BaseTest {
         }
         vm.prank(platform);
         vm.expectRevert(RoundTypes.InvalidMilestones.selector);
-        escrow.createRound(founder, TARGET, deadline, bps, CAP_BPS);
+        escrow.createRound(founder, TARGET, deadline, bps, EQUITY_BPS);
     }
 
     function test_getRound_revertsOnUnknownId() public {

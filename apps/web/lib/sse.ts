@@ -5,12 +5,15 @@ export type SseStatus = 'connecting' | 'open' | 'closed' | 'error';
 type Handlers = {
   onEvent: (event: RunEvent) => void;
   onStatus?: (status: SseStatus) => void;
+  // A single-run stream ends at run.completed; the firehose never does, so it must
+  // stay subscribed and let EventSource reconnect after a transport error.
+  closeOnCompleted?: boolean;
 };
 
 // The API sends typed SSE messages (`event: run.started` …), so `onmessage`
 // never fires; we attach one listener per RunEventType and validate each payload
 // with the shared zod schema. Returns an unsubscribe function.
-export function subscribeRunEvents(url: string, { onEvent, onStatus }: Handlers): () => void {
+export function subscribeRunEvents(url: string, { onEvent, onStatus, closeOnCompleted = true }: Handlers): () => void {
   const source = new EventSource(url);
   let completed = false;
   onStatus?.('connecting');
@@ -20,7 +23,7 @@ export function subscribeRunEvents(url: string, { onEvent, onStatus }: Handlers)
       const parsed = RunEventSchema.safeParse(JSON.parse(raw.data));
       if (!parsed.success) return;
       onEvent(parsed.data);
-      if (parsed.data.type === 'run.completed') completed = true;
+      if (closeOnCompleted && parsed.data.type === 'run.completed') completed = true;
     } catch {
       // malformed frame — ignore, the stream is replayable
     }
