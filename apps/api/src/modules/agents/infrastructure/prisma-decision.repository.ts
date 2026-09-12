@@ -46,8 +46,14 @@ export class PrismaDecisionRepository implements DecisionRepository {
     return rows.map(toDecision);
   }
 
+  // Only proposals a human can still act on. A ticket for a round that has closed or
+  // exited can never settle, so leaving it in the queue is noise, not information.
   async listPending(): Promise<Decision[]> {
-    const rows = await this.prisma.decision.findMany({ where: { approval: 'PENDING' }, include, orderBy: { createdAt: 'desc' } });
+    const rows = await this.prisma.decision.findMany({
+      where: { approval: 'PENDING', round: { status: 'OPEN' } },
+      include,
+      orderBy: { createdAt: 'desc' },
+    });
     return rows.map(toDecision);
   }
 

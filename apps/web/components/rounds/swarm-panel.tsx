@@ -49,7 +49,7 @@ export function SwarmPanel({ roundId, agents, round, status }: SwarmPanelProps) 
     >
       {runs.length === 0 ? (
         <p className="text-[12px] text-muted">
-          Launch all {agents.length} agents on this round. Each buys the report over x402, applies its own mandate and
+          Launch all {agents.length} agents on this round. Each researches it, applies its own mandate and
           settles on Arc — watch the same score turn into different verdicts.
         </p>
       ) : (

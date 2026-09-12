@@ -3,7 +3,7 @@ import type { StepKey, StepState } from '@/lib/run-state';
 
 type StepperProps = { steps: Record<StepKey, StepState>; compact?: boolean; short?: boolean };
 
-const shortLabel: Record<StepKey, string> = { data: 'x402 data', gate: 'gate', policy: 'policy', engine: 'decide', settle: 'settle' };
+const shortLabel: Record<StepKey, string> = { data: 'gather', gate: 'gate', policy: 'policy', engine: 'decide', settle: 'settle' };
 
 const node: Record<StepState, string> = {
   pending: 'border-line-strong bg-raised text-dim',

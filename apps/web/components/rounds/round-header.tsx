@@ -44,7 +44,9 @@ export function RoundHeader({ round }: { round: RoundDetail }) {
             <span className="font-mono text-[10.5px] text-muted">{Math.round(progress)}%</span>
           </div>
           <p className="font-mono text-[10.5px] text-muted">target {usdc(round.targetUsdc)} · min ticket {usdc(round.minTicketUsdc)}</p>
-          <p className="font-mono text-[10.5px] text-dim">{bpsShare(round.equityBps)} at {usdcCompact(entryValuation(round.targetUsdc, round.equityBps))} valuation</p>
+          <p className="font-mono text-[10.5px] text-dim">
+            {bpsShare(round.equityBps)} equity · {usdcCompact(entryValuation(round.targetUsdc, round.equityBps))} valuation at target
+          </p>
           <Meter value={progress} tone={progress >= 100 ? 'accent' : 'info'} className="mt-2" height={5} />
           <div className="mt-2 flex items-center justify-between font-mono text-[10.5px]">
             <span className={deadline.expired ? 'text-danger' : 'text-accent'}>⏱ {deadline.label}{!deadline.expired && ' left'}</span>

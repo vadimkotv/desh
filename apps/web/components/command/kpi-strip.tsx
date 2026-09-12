@@ -47,9 +47,9 @@ export function KpiStrip({ stats, investments, receipts }: KpiStripProps) {
       />
       <StatTile label="Decisions" value={num(stats.decisions)} hint={`${stats.agents} agents · mandate-bound`} tone="agent" />
       <StatTile
-        label="Data purchases"
-        value={num(stats.dataPurchases)}
-        hint="x402 receipts · Hedera"
+        label="Data rooms opened"
+        value={num(stats.accessGranted)}
+        hint={`${stats.accessPending} agents asking · ${stats.dataPurchases} x402 receipts`}
         tone="amber"
         viz={purchases.length > 1 ? <Sparkline values={purchases} min={0} width={88} height={30} color="var(--color-chart-warn)" /> : undefined}
       />

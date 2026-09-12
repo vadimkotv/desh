@@ -13,7 +13,7 @@ export default async function AgentsPage() {
       <PageHeader
         eyebrow="investors"
         title="Agents"
-        description="Each agent holds its own wallet, pays for data over x402, and can only act inside the mandate its owner wrote."
+        description="Each agent holds its own wallet, asks founders for the data it cannot read on-chain, and can only act inside the mandate its owner wrote — autonomously, or by proposing a ticket for a human to approve."
         action={!agents.offline && <span className="font-mono text-[11px] text-muted">{agents.items.length} registered</span>}
       />
       <div className="grid gap-4 lg:grid-cols-5">

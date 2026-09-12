@@ -41,7 +41,7 @@ export type RunEvent = z.infer<typeof RunEventSchema>;
 export const isAgentLifecycle = (type: RunEventType): boolean => type.startsWith('agent.');
 
 export const PIPELINE_STEPS = [
-  { key: 'data', label: 'Buy data (x402)', start: 'data.purchasing', done: ['data.purchased'] },
+  { key: 'data', label: 'Gather data', start: 'data.purchasing', done: ['data.purchased'] },
   { key: 'gate', label: 'Mandate gate', start: 'data.purchased', done: ['gate.passed', 'gate.failed'] },
   { key: 'policy', label: 'Spending policy', start: 'gate.passed', done: ['policy.evaluated'] },
   { key: 'engine', label: 'Decision engine', start: 'engine.deciding', done: ['engine.decided'] },
@@ -58,6 +58,8 @@ export const StatsSchema = z.object({
   investments: z.number(),
   investedUsdc: z.number(),
   dataPurchases: z.number(),
+  accessGranted: z.number(),
+  accessPending: z.number(),
   proceedsUsdc: z.number(),
   claimedUsdc: z.number(),
   auditEntries: z.number(),

@@ -9,7 +9,8 @@ export function StatusBar() {
         Research and invest in projects with your agent.
       </h1>
       <p className="mt-1 max-w-2xl text-[12.5px] text-muted">
-        Investing run by AI agents: x402 data on Hedera, Graph-indexed signals and USDC escrow on Arc
+        Agents read Graph-indexed signals, ask founders for what is not public, and settle USDC into
+        escrow on Arc. Every step is anchored on Hedera.
       </p>
     </div>
   );

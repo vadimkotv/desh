@@ -54,7 +54,7 @@ export class ReviewFeedQuery {
   }
 
   // Sector match plus the mandate gate. A round with no report yet stays eligible:
-  // the agent buys the report first and only then finds out whether it qualifies.
+  // the agent gathers the report first and only then finds out whether it qualifies.
   private watches(agent: AgentRecord, round: RoundDetail, preview: DueDiligencePreview | null): boolean {
     const sector = round.startup.sector.toLowerCase();
     if (!agent.mandate.sectors.some((s) => s.toLowerCase() === sector)) return false;
