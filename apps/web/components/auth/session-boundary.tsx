@@ -17,7 +17,7 @@ export function SessionBoundary({ children }: { children: ReactNode }) {
     <PrivyProvider
       appId={APP_ID}
       config={{
-        loginMethods: ['email', 'wallet', 'google'],
+        loginMethods: ['email', 'wallet'],
         embeddedWallets: { ethereum: { createOnLogin: 'users-without-wallets' } },
         appearance: { theme: 'dark', accentColor: '#3ddc97', logo: undefined },
       }}
