@@ -1,0 +1,7 @@
+# Add this file when port 80 on the box belongs to something else. Caddy then serves only
+# 443 and gets its certificates over TLS-ALPN, which needs no port 80 at all:
+#   docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.port443.yml --env-file deploy/.env up -d --build
+services:
+  caddy:
+    ports: !override
+      - '443:443'

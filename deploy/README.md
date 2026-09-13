@@ -53,6 +53,9 @@ docker compose -f deploy/docker-compose.yml down -v       # wipes chain + databa
 
 ## Notes
 
+- **Port 80 already taken?** Add `-f deploy/docker-compose.port443.yml` to every compose
+  command. Caddy then listens on 443 only and proves ownership over TLS-ALPN instead of HTTP.
+
 - **The chain is local.** `anvil` keeps its state in a volume, so rounds, investments
   and exits survive restarts — but it is not Arc testnet, and the UI says so. Point
   `ARC_RPC_URL` at a real RPC and set a funded `ARC_PLATFORM_PRIVATE_KEY` to change that.

@@ -29,7 +29,7 @@ const milestones = [
 export const DEMO_STARTUPS: DemoStartup[] = [
   {
     name: 'Meridian Yield',
-    targetUsdc: 5_000,
+    targetUsdc: 1_000,
     equityBps: 800,
     milestones,
     startup: {
@@ -52,7 +52,7 @@ export const DEMO_STARTUPS: DemoStartup[] = [
   },
   {
     name: 'Orbital Agents',
-    targetUsdc: 2_500,
+    targetUsdc: 800,
     equityBps: 1_200,
     milestones,
     startup: {
@@ -73,7 +73,7 @@ export const DEMO_STARTUPS: DemoStartup[] = [
   },
   {
     name: 'Ledgerline Payroll',
-    targetUsdc: 1_000,
+    targetUsdc: 600,
     equityBps: 500,
     milestones: [{ title: 'Pilot with 5 companies', releaseBps: 10_000 }],
     startup: {

@@ -14,15 +14,18 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/* \
  && corepack enable
 
-COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json tsconfig.base.json ./
 COPY packages/shared/package.json packages/shared/
-COPY apps/api/package.json apps/api/
-RUN pnpm install --frozen-lockfile --filter @agentipo/api... --filter @agentipo/shared
+# The schema and prisma.config.ts must be in place before install: `postinstall` runs `prisma generate`.
+COPY apps/api/package.json apps/api/prisma.config.ts apps/api/
+COPY apps/api/prisma apps/api/prisma
+# prisma.config.ts resolves DATABASE_URL eagerly; generate does not connect, so a placeholder is enough.
+RUN DATABASE_URL=postgresql://build@localhost/build pnpm install --frozen-lockfile --filter @agentipo/api... --filter @agentipo/shared
 
 COPY packages/shared packages/shared
 COPY apps/api apps/api
 RUN pnpm --filter @agentipo/shared build \
- && pnpm --filter @agentipo/api exec prisma generate \
+ && DATABASE_URL=postgresql://build@localhost/build pnpm --filter @agentipo/api exec prisma generate \
  && pnpm --filter @agentipo/api exec nest build
 
 COPY deploy/api-entrypoint.sh /usr/local/bin/api-entrypoint

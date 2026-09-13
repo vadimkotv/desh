@@ -21,12 +21,15 @@ services:
   anvil:
     image: ghcr.io/foundry-rs/foundry:latest
     restart: unless-stopped
+    # The foundry image runs as an unprivileged user; the shared `chain` volume is root-owned.
+    user: root
     entrypoint: ['anvil', '--chain-id', '5042002', '--host', '0.0.0.0', '--state', '/chain/anvil-state.json', '--silent']
     volumes: [chain:/chain]
 
   # Deploys MockUSDC + RoundEscrow and funds the wallets, then exits. Idempotent.
   chain-init:
     image: ghcr.io/foundry-rs/foundry:latest
+    user: root
     entrypoint: ['bash', '/scripts/chain-init.sh']
     environment:
       ARC_RPC_URL: http://anvil:8545
