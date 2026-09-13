@@ -72,6 +72,14 @@ anvil --chain-id 5042002 &
 pnpm --filter @agentipo/api dev:facilitator-stub     # → X402_FACILITATOR_URL=http://localhost:3999
 ```
 
+## Deploy (Docker)
+
+`Dockerfile` builds two targets (`api`, `web`) from one pnpm layer; `docker-compose.prod.yml` runs them
+with Postgres. On the host: copy `.env.example` to `.env`, set `PUBLIC_HOST=<public ip or domain>` plus any
+sponsor keys, then `docker compose -f docker-compose.prod.yml up -d --build`. The API container applies
+migrations and the seed on every start. From a checkout, `DEPLOY_HOST=root@host sh scripts/deploy.sh`
+ships `git archive HEAD` and rebuilds. Web is on `:3000`, API + Swagger on `:4000`.
+
 ## Repository
 
 | Path | What |

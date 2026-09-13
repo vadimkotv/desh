@@ -1,0 +1,15 @@
+.git
+.github
+docs
+**/node_modules
+**/dist
+**/.next
+**/*.tsbuildinfo
+**/coverage
+apps/api/src/generated
+packages/contracts/out
+packages/contracts/cache
+packages/contracts/lib
+packages/contracts/broadcast
+.env
+.env.*
