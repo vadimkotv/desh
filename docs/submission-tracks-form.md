@@ -5,15 +5,24 @@ Three prizes selected: **The Graph $15k · Hedera $15k · Arc $10k**.
 Each block below is ready to paste into that prize's row: *why you're applicable*,
 *link to the line of code*, *how easy was the API (1–10)*, *feedback for the sponsor*.
 
-**Link format.** Pin to the commit, not the branch, so the links still point at the same
-lines after any later push:
+## Get the links first — they do not exist yet
 
-```
-https://github.com/vadimkotv/desh/blob/<final-commit-sha>/<path>#L<from>-L<to>
+`origin/yevhen` on GitHub is still at `f1e644e`. None of this work is pushed, so
+`ExitReturns.sol` is not on GitHub at all and `RoundEscrow.sol` / `prompt.builder.ts` are
+an older version there with different line numbers. **Push the branch before you paste
+any link into the form.**
+
+Then run:
+
+```bash
+./scripts/submission-links.sh
 ```
 
-Take `<final-commit-sha>` from `git rev-parse HEAD` right before you submit. If you would
-rather not pin, `blob/yevhen/...` works today but drifts.
+It prints every link below pinned to the pushed commit, with line ranges resolved from
+the code by anchor text rather than hard-coded — so they cannot drift when a file is
+edited. It warns if the tree is dirty or the commit is not on a remote yet.
+
+The `<sha>` in the blocks below is a placeholder; take the real URLs from the script.
 
 ---
 
@@ -248,7 +257,10 @@ use case much better.
 
 ## Before you submit
 
-- Replace every `<sha>` with the real commit hash (`git rev-parse HEAD`).
+- **Push `yevhen` first.** Nothing here is on GitHub yet — links to unpushed code 404,
+  and judges who clone the repo get your partner's version without exits, growth or
+  approval modes.
+- Get the URLs from `./scripts/submission-links.sh`, not from the `<sha>` placeholders.
 - Open each link once in a browser — GitHub line anchors are easy to get wrong by one.
 - The ratings above are my read of the friction we actually hit; adjust if yours differs.
   Do not give a 10 to all three — identical top scores read as unconsidered.
