@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useSession } from '@/lib/session-context';
 import { ActiveAgentStatus } from './active-agent-status';
 import { SessionPill } from './session-pill';
 
@@ -14,11 +15,16 @@ const links = [
 
 export function NavLinks() {
   const pathname = usePathname();
+  const { session } = useSession();
+  // Before sign-in the gate is showing anyway, so links to gated pages would only
+  // bounce the visitor back here. Keep the bar to the sign-in state alone.
+  const signedIn = Boolean(session?.account.role);
+
   return (
     <nav className="flex items-center gap-1.5" aria-label="Primary">
-      <ActiveAgentStatus />
+      {signedIn && <ActiveAgentStatus />}
       <SessionPill />
-      {links.map((link) => {
+      {signedIn && links.map((link) => {
         const active = link.match(pathname);
         return (
           <Link
