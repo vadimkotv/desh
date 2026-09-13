@@ -37,6 +37,9 @@ docker compose -f deploy/docker-compose.yml exec api pnpm demo:flow 20 140
 
 # top up agent wallets after creating new agents through the UI
 docker compose -f deploy/docker-compose.yml exec api pnpm dev:fund-agents
+
+# one line per sponsor integration: PASS / FAIL / skip, with the key that turns it on
+docker compose -f deploy/docker-compose.yml exec api pnpm verify:integrations
 ```
 
 In the browser: **Run** on an agent starts it researching in the background; **Run
