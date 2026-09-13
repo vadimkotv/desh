@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Wordmark } from '@/components/brand/logo';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useSession } from '@/lib/session-context';
@@ -25,8 +26,13 @@ export function Onboarding() {
   };
 
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-5">
-      <div>
+    <div className="mx-auto flex max-w-3xl flex-col gap-5 py-6">
+      {step === 0 && (
+        <div className="flex justify-center pb-2">
+          <Wordmark size={44} tagline />
+        </div>
+      )}
+      <div className={step === 0 ? 'text-center' : undefined}>
         <p className="eyebrow text-accent">get started</p>
         <h1 className="mt-1 text-xl font-semibold tracking-tight text-bright">
           {step === 0 ? 'Sign in' : step === 1 ? 'Which side are you on?' : role === 'FOUNDER' ? 'List your startup' : 'Write your mandate'}
@@ -47,7 +53,7 @@ export function Onboarding() {
       {!ready ? (
         <p className="font-mono text-[11px] text-dim"><span className="live-dot">●</span> loading…</p>
       ) : step === 0 ? (
-        <div className="flex flex-col items-start gap-3 rounded-lg border border-line bg-panel/90 p-5">
+        <div className="flex flex-col items-center gap-3 rounded-lg border border-line bg-panel/90 p-5">
           <div className="flex items-center gap-2">
             <Badge tone={privy ? 'accent' : 'amber'}>{privy ? 'privy' : 'demo mode'}</Badge>
             <span className="font-mono text-[10.5px] text-dim">
