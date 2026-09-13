@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Meter } from '@/components/charts/meter';
 import { Ring } from '@/components/charts/ring';
+import { StartupMark } from '@/components/startups/startup-mark';
 import { Badge, roundStatusTone } from '@/components/ui/badge';
 import { bpsShare, countdown, percent, usdcCompact } from '@/lib/format';
 import type { ReviewState, ReviewWatcher } from '@agentipo/shared';
@@ -23,7 +24,9 @@ export function RoundRow({ round, score, state, watchers = [] }: RoundRowProps) 
   return (
     <article className="group flex flex-col gap-2.5 rounded-lg border border-line bg-panel/90 p-3 transition-colors hover:border-accent/40">
       <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
+        <div className="flex min-w-0 gap-2">
+          <StartupMark startup={round.startup} size="sm" />
+          <div className="min-w-0">
           <Link
             href={`/rounds/${round.id}`}
             className="block truncate text-[13px] font-semibold text-bright group-hover:text-accent"
@@ -45,6 +48,7 @@ export function RoundRow({ round, score, state, watchers = [] }: RoundRowProps) 
             ) : (
               <Badge tone="neutral">off-chain</Badge>
             )}
+          </div>
           </div>
         </div>
         {score !== null ? (

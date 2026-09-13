@@ -3,6 +3,7 @@ import { GraphModule } from './common/graph/graph.module';
 import { HederaModule } from './common/hedera/hedera.module';
 import { PrismaModule } from './common/prisma/prisma.module';
 import { ConfigModule } from './config/config.module';
+import { AccountsModule } from './modules/accounts/accounts.module';
 import { AgentsModule } from './modules/agents/agents.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { DataRoomModule } from './modules/data-room/data-room.module';
@@ -21,6 +22,7 @@ import { StatsModule } from './modules/stats/stats.module';
     GraphModule,
     HederaModule,
     HealthModule,
+    AccountsModule,
     StartupsModule,
     DataRoomModule,
     DueDiligenceModule,

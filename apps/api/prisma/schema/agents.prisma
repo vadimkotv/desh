@@ -1,5 +1,7 @@
 model Agent {
   id              String       @id @default(uuid())
+  ownerAccountId  String?
+  owner           Account?     @relation(fields: [ownerAccountId], references: [id])
   name            String
   ownerAddress    String
   walletKind      WalletKind   @default(LOCAL_KEY)

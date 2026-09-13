@@ -11,3 +11,4 @@ export * from './review.js';
 export * from './metrics.js';
 export * from './growth.js';
 export * from './access.js';
+export * from './account.js';

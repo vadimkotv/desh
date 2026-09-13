@@ -42,6 +42,11 @@ export const EnvSchema = z.object({
   X402_ASSET: z.enum(['USDC', 'HBAR']).default('USDC'),
   X402_HBAR_TINYBARS: z.string().regex(/^\d+$/).default('10000000'),
 
+  // Privy (onboarding). Without an app id the API issues clearly-marked demo sessions.
+  PRIVY_APP_ID: optionalStr,
+  // Optional: paste the app's JWKS to verify offline instead of fetching auth.privy.io.
+  PRIVY_JWKS_JSON: optionalStr,
+
   // Agents
   AGENT_MASTER_MNEMONIC: optionalStr,
   AGENT_HEDERA_INITIAL_HBAR: z.coerce.number().nonnegative().default(5),

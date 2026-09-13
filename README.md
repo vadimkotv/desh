@@ -37,6 +37,23 @@ agent ──► free report + founder metrics ──► due-diligence engine ─
                                             acquisition / IPO / TGE / contract ──► settleExit ──► claim
 ```
 
+## Onboarding
+
+A person signs in through **Privy**, says whether they are raising or investing, and
+lands with something real: a founder finishes with a listed startup whose metrics are
+already a trajectory, an investor finishes with a working agent under their mandate.
+
+Without `PRIVY_APP_ID` the same three screens run on a local session that is labelled
+**demo** everywhere it appears — in the nav pill, on the sign-in step, and in the
+account record the API stores — so a screenshot can never imply a verified login.
+
+```
+/onboarding → sign in ─► pick a side ─┬─ founder: name, logo, links, contracts, token,
+                                      │           and metrics as a monthly series with
+                                      │           a "gated" switch per row
+                                      └─ investor: mandate + autonomous or advisory
+```
+
 ## Quick start
 
 ```bash

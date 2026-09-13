@@ -10,6 +10,7 @@ import type { AgentRecord } from '../domain/agent.repository';
 
 export const toAgentRecord = (a: DbAgent): AgentRecord => ({
   id: a.id,
+  ownerAccountId: a.ownerAccountId,
   name: a.name,
   ownerAddress: a.ownerAddress,
   walletKind: a.walletKind,

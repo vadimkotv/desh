@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
+import { SessionBoundary } from '@/components/auth/session-boundary';
 import { TopNav } from '@/components/layout/top-nav';
 import { Footer } from '@/components/layout/footer';
 import { inter, jetbrains } from './fonts';
@@ -14,9 +15,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={`dark ${inter.variable} ${jetbrains.variable}`}>
       <body className="flex min-h-screen flex-col">
-        <TopNav />
-        <main className="mx-auto w-full max-w-[1400px] flex-1 px-4 py-5 sm:px-6">{children}</main>
-        <Footer />
+        <SessionBoundary>
+          <TopNav />
+          <main className="mx-auto w-full max-w-[1400px] flex-1 px-4 py-5 sm:px-6">{children}</main>
+          <Footer />
+        </SessionBoundary>
       </body>
     </html>
   );

@@ -1,8 +1,25 @@
+// A person on the platform. Identity comes from Privy; the role decides which half of
+// the product they see. One account can both list a startup and run agents.
+model Account {
+  id            String       @id @default(uuid())
+  privyDid      String       @unique
+  role          AccountRole?
+  walletAddress String?
+  email         String?
+  verified      Boolean      @default(false)
+  createdAt     DateTime     @default(now())
+  startups      Startup[]
+  agents        Agent[]
+}
+
 model Startup {
   id              String             @id @default(uuid())
+  ownerAccountId  String?
+  owner           Account?           @relation(fields: [ownerAccountId], references: [id])
   name            String
   description     String
   sector          String
+  logoUrl         String?
   website         String?
   founderAddress  String
   treasuryAddress String

@@ -21,6 +21,7 @@ export class PrismaAgentRepository implements AgentRepository {
         ownerAddress: input.ownerAddress,
         walletKind: input.walletKind,
         mode: input.mode,
+        ownerAccountId: input.ownerAccountId,
         mandate: asJson(input.mandate),
       },
     });

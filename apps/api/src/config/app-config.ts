@@ -32,6 +32,7 @@ export class AppConfig {
       hcs: Boolean(e.HEDERA_OPERATOR_ID && e.HEDERA_OPERATOR_KEY),
       agentKeys: Boolean(e.AGENT_MASTER_MNEMONIC),
       llm: Boolean(e.ANTHROPIC_API_KEY),
+      privy: Boolean(e.PRIVY_APP_ID),
     };
   }
 

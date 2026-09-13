@@ -1,52 +1,22 @@
 import type * as S from '@agentipo/shared';
 import type * as T from './api-types';
+import { get, post } from './http';
+
+export { API_URL, listOrEmpty, sseUrl } from './http';
 
 // Single fetch call site for the dashboard. Works in server components and
 // client components alike; every helper returns an ApiResult, never throws.
-export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
-
-function errorMessage(body: string, fallback: string): string {
-  try {
-    const parsed: unknown = JSON.parse(body);
-    if (parsed && typeof parsed === 'object') {
-      // Contract reverts arrive as 409 { error: 'ContractRevert', reason, message } — the reason is the useful bit.
-      const { reason, message } = parsed as { reason?: unknown; message?: unknown };
-      if (typeof reason === 'string' && reason) return reason;
-      if (message !== undefined)
-        return Array.isArray(message) ? message.join(', ') : String(message);
-    }
-  } catch {
-    // not JSON — fall through to raw text
-  }
-  return body || fallback;
-}
-
-async function request<R>(path: string, init?: RequestInit): Promise<T.ApiResult<R>> {
-  try {
-    const res = await fetch(`${API_URL}${path}`, {
-      cache: 'no-store',
-      ...init,
-      headers: { accept: 'application/json', 'content-type': 'application/json', ...init?.headers },
-    });
-    if (!res.ok) {
-      const body = await res.text().catch(() => '');
-      return { ok: false, status: res.status, error: errorMessage(body, res.statusText) };
-    }
-    const text = await res.text();
-    return { ok: true, data: (text ? JSON.parse(text) : null) as R };
-  } catch (err) {
-    return { ok: false, status: 0, error: err instanceof Error ? err.message : 'network error' };
-  }
-}
-
-const get = <R>(path: string) => request<R>(path);
-const post = <R>(path: string, body?: unknown) =>
-  request<R>(path, { method: 'POST', body: body === undefined ? undefined : JSON.stringify(body) });
-
 export const api = {
   health: () => get<T.Health>('/health'),
+  authMode: () => get<{ privy: boolean }>('/auth/mode'),
+  session: (accountId: string) => get<S.Session>(`/auth/accounts/${accountId}`),
+  openSession: (body: S.SessionRequest) => post<S.Session>('/auth/session', body),
+  setRole: (accountId: string, role: S.AccountRole) =>
+    post<S.Session>(`/auth/accounts/${accountId}/role`, { role }),
   stats: () => get<S.Stats>('/stats'),
   rounds: () => get<T.RoundDetail[]>('/rounds'),
+  startups: () => get<S.Startup[]>('/startups'),
+  startup: (id: string) => get<S.Startup>(`/startups/${id}`),
   round: (id: string) => get<T.RoundDetail>(`/rounds/${id}`),
   roundReturns: (id: string) => get<S.RoundReturns>(`/rounds/${id}/returns`),
   exits: (id: string) => get<S.ExitEvent[]>(`/rounds/${id}/exits`),
@@ -73,6 +43,10 @@ export const api = {
   walletUsdc: (address: string) => get<T.WalletBalance>(`/settlement/wallets/${address}/usdc`),
   onchainRound: (onchainId: number) => get<T.OnchainRound>(`/settlement/rounds/${onchainId}`),
   createAgent: (input: S.CreateAgent) => post<S.Agent>('/agents', input),
+  createStartup: (input: S.CreateStartup) => post<S.Startup>('/startups', input),
+  upsertMetric: (startupId: string, input: S.UpsertMetric) =>
+    post<S.FounderMetric>(`/data-room/startups/${startupId}/metrics`, input),
+  createRound: (input: S.CreateRound) => post<T.RoundDetail>('/rounds', input),
   registerIdentity: (id: string) => post<S.Agent>(`/agents/${id}/identity`),
   runAgent: (id: string) => post<S.Agent>(`/agents/${id}/run`),
   pauseAgent: (id: string) => post<S.Agent>(`/agents/${id}/pause`),
@@ -93,16 +67,3 @@ export const api = {
   generateReport: (roundId: string) =>
     post<S.DueDiligenceReport>(`/due-diligence/rounds/${roundId}/generate`),
 };
-
-// SSE endpoints are consumed by EventSource, not fetch; the URLs still come from here.
-export const sseUrl = {
-  firehose: () => `${API_URL}/events`,
-  run: (runId: string) => `${API_URL}/runs/${runId}/events`,
-};
-
-// Collapses a list result into data-or-empty while remembering whether the API
-// was reachable, so pages can render an "offline" state instead of crashing.
-export function listOrEmpty<R>(result: T.ApiResult<R[]>): { items: R[]; offline: boolean } {
-  if (result.ok) return { items: Array.isArray(result.data) ? result.data : [], offline: false };
-  return { items: [], offline: result.status === 0 };
-}

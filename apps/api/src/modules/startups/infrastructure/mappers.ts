@@ -5,7 +5,9 @@ import type { RoundDetail } from '../domain/round.repository';
 
 export const toStartup = (s: DbStartup): Startup => ({
   id: s.id,
+  ownerAccountId: s.ownerAccountId,
   name: s.name,
+  logoUrl: s.logoUrl ?? undefined,
   description: s.description,
   sector: s.sector,
   website: s.website ?? undefined,

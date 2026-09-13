@@ -37,6 +37,7 @@ export const CreateStartupSchema = z.object({
   name: z.string().min(2).max(80),
   description: z.string().min(10).max(2000),
   sector: z.string().min(2).max(40),
+  logoUrl: z.string().url().optional(),
   website: z.string().url().optional(),
   founderAddress: evmAddress,
   treasuryAddress: evmAddress,
@@ -44,6 +45,7 @@ export const CreateStartupSchema = z.object({
   tokenNetwork: z.string().default('mainnet'),
   githubRepo: z.string().optional(),
   links: z.array(StartupLinkSchema).max(12).default([]),
+  ownerAccountId: z.string().uuid().optional(),
 });
 export type CreateStartup = z.infer<typeof CreateStartupSchema>;
 
@@ -61,6 +63,7 @@ export type CreateRound = z.infer<typeof CreateRoundSchema>;
 
 export const StartupSchema = CreateStartupSchema.extend({
   id: z.string().uuid(),
+  ownerAccountId: z.string().nullable(),
   createdAt: z.string(),
 });
 export type Startup = z.infer<typeof StartupSchema>;

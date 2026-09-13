@@ -15,6 +15,11 @@ enum RoundStatus {
   EXITED
 }
 
+enum AccountRole {
+  FOUNDER
+  INVESTOR
+}
+
 enum Visibility {
   PUBLIC
   GATED

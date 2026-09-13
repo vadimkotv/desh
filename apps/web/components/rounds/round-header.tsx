@@ -2,6 +2,7 @@ import { Meter } from '@/components/charts/meter';
 import { Badge, roundStatusTone } from '@/components/ui/badge';
 import { CopyButton } from '@/components/ui/copy-button';
 import { StartupLinks } from '@/components/startups/startup-links';
+import { StartupMark } from '@/components/startups/startup-mark';
 import { bpsShare, countdown, formatDate, percent, usdc, usdcCompact } from '@/lib/format';
 import { entryValuation } from '@agentipo/shared';
 import type { RoundDetail } from '@/lib/types';
@@ -16,6 +17,7 @@ export function RoundHeader({ round }: { round: RoundDetail }) {
         <div className="min-w-0 flex-1">
           <p className="eyebrow text-accent">round · {round.id.slice(0, 8)}</p>
           <div className="mt-1 flex flex-wrap items-center gap-2">
+            <StartupMark startup={startup} />
             <h1 className="text-2xl font-semibold tracking-tight text-bright">{startup.name}</h1>
             <Badge tone="info">{startup.sector}</Badge>
             <Badge tone={roundStatusTone[round.status]}>{round.status}</Badge>

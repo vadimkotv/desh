@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ActiveAgentStatus } from './active-agent-status';
+import { SessionPill } from './session-pill';
 
 const links = [
   { href: '/', label: 'Command center', short: 'Center', match: (p: string) => p === '/' },
@@ -16,6 +17,7 @@ export function NavLinks() {
   return (
     <nav className="flex items-center gap-1.5" aria-label="Primary">
       <ActiveAgentStatus />
+      <SessionPill />
       {links.map((link) => {
         const active = link.match(pathname);
         return (

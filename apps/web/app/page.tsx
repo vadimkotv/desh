@@ -2,6 +2,7 @@ import { ApprovalQueue } from '@/components/command/approval-queue';
 import { KpiStrip } from '@/components/command/kpi-strip';
 import { LiveRefresh } from '@/components/command/live-refresh';
 import { ReviewFeed } from '@/components/command/review-feed';
+import { RoleCta } from '@/components/command/role-cta';
 import { StatusBar } from '@/components/command/status-bar';
 import { ApiOffline } from '@/components/ui/empty-state';
 import { api, listOrEmpty } from '@/lib/api';
@@ -36,6 +37,7 @@ export default async function CommandCenterPage() {
     <div className="flex flex-col gap-4">
       <LiveRefresh />
       <StatusBar />
+      <RoleCta />
       {rounds.offline ? (
         <ApiOffline />
       ) : (

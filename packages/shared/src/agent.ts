@@ -31,6 +31,7 @@ export const CreateAgentSchema = z.object({
   ownerAddress: evmAddress,
   walletKind: WalletKind.default('LOCAL_KEY'),
   mode: AgentMode.default('AUTONOMOUS'),
+  ownerAccountId: z.string().uuid().optional(),
   mandate: MandateSchema,
 });
 export type CreateAgent = z.infer<typeof CreateAgentSchema>;
@@ -46,6 +47,7 @@ export const AgentSchema = z.object({
   erc8004ChainId: z.number().nullable(),
   status: AgentStatus,
   mode: AgentMode,
+  ownerAccountId: z.string().nullable(),
   mandate: MandateSchema,
   createdAt: z.string(),
 });
