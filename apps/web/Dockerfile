@@ -18,11 +18,11 @@ COPY packages/shared packages/shared
 COPY apps/web apps/web
 RUN pnpm --filter @agentipo/shared build && pnpm --filter @agentipo/web build
 
+# Runtime carries the standalone output only (server.js + traced node_modules + static assets).
 FROM node:22-slim AS runtime
 WORKDIR /app
-ENV NODE_ENV=production PORT=3000
-RUN corepack enable
-COPY --from=build /repo /repo
-WORKDIR /repo/apps/web
+ENV NODE_ENV=production PORT=3000 HOSTNAME=0.0.0.0
+COPY --from=build /repo/apps/web/.next/standalone ./
+COPY --from=build /repo/apps/web/.next/static ./apps/web/.next/static
 EXPOSE 3000
-CMD ["pnpm", "start"]
+CMD ["node", "apps/web/server.js"]
