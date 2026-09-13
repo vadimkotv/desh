@@ -16,6 +16,7 @@ export const EnvSchema = z.object({
 
   // The Graph
   GRAPH_TOKEN_API_JWT: optionalStr,
+  GRAPH_TOKEN_API_BASE: z.string().url().optional(),
   GRAPH_GATEWAY_API_KEY: optionalStr,
   GRAPH_MESSARI_DEX_SUBGRAPH_ID: optionalStr,
   GRAPH_AGENT0_SUBGRAPH_ID: z.string().default('6wQRC7geo9XYAhckfmfo8kbMRLeWU8KQd3XsJqFKmZLT'),
