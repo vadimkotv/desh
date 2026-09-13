@@ -1,0 +1,16 @@
+# The build context is the whole monorepo; keep it small and reproducible.
+**/node_modules
+**/dist
+**/.next
+**/out
+**/cache
+**/generated
+**/.turbo
+packages/contracts/lib
+packages/contracts/broadcast
+.git
+docs/screens
+**/*.log
+**/.env
+**/.env.local
+deploy/.env

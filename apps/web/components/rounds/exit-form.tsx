@@ -9,7 +9,8 @@ import { bpsShare, num, usdcCompact } from '@/lib/format';
 
 type ExitFormProps = { roundId: string; equityBps: number; raisedUsdc: number };
 
-const field = 'rounded-md border border-line bg-ink px-2 py-1 font-mono text-[11px] text-fg outline-none focus:border-amber/60';
+const field =
+  'w-full rounded-md border border-line bg-ink px-2 py-1 font-mono text-[11px] text-fg outline-none focus:border-amber/60';
 
 // Settles a liquidity event into the round. The operator enters the headline valuation;
 // the round's stake decides what actually reaches investors.
@@ -29,7 +30,7 @@ export function ExitForm({ roundId, equityBps, raisedUsdc }: ExitFormProps) {
   }
 
   return (
-    <span className="inline-flex flex-wrap items-center justify-end gap-2">
+    <span className="flex w-full flex-col gap-1.5">
       <select value={kind} onChange={(e) => setKind(e.target.value as ExitKind)} className={field} aria-label="exit kind">
         {ExitKind.options.map((option) => (
           <option key={option} value={option}>{EXIT_LABELS[option]}</option>
@@ -41,13 +42,15 @@ export function ExitForm({ roundId, equityBps, raisedUsdc }: ExitFormProps) {
         step="any"
         value={valuation}
         onChange={(e) => setValuation(Number(e.target.value))}
-        className={`w-32 ${field}`}
+        className={field}
         aria-label="exit valuation in USDC"
       />
-      <span className="num text-[10px] text-dim" title={`${bpsShare(equityBps)} of ${usdcCompact(valuation)}`}>
-        → {num(proceeds)} USDC
+      <span className="flex items-center justify-between gap-2">
+        <span className="num text-[10px] text-dim" title={`${bpsShare(equityBps)} of ${usdcCompact(valuation)}`}>
+          {bpsShare(equityBps)} → <span className="text-accent">{num(proceeds)} USDC</span>
+        </span>
+        <Button size="xs" variant="primary" busy={state.busy} onClick={settle} disabled={proceeds <= 0}>Settle exit</Button>
       </span>
-      <Button size="xs" variant="primary" busy={state.busy} onClick={settle} disabled={proceeds <= 0}>Settle exit</Button>
       {state.text && <span className={`font-mono text-[10px] ${state.error ? 'text-danger' : 'text-accent'}`}>{state.text}</span>}
     </span>
   );

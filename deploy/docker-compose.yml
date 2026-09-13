@@ -1,0 +1,98 @@
+# Everything AgentIPO needs on one box, including a local Arc stand-in, so a public
+# demo needs no testnet funds and no sponsor keys. Run from the repository root:
+#   docker compose -f deploy/docker-compose.yml --env-file deploy/.env up -d --build
+name: agentipo
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: agentipo
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-agentipo}
+      POSTGRES_DB: agentipo
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U agentipo']
+      interval: 5s
+      retries: 20
+
+  # Local Arc: same chain id, USDC as the native gas token, state kept in a volume.
+  anvil:
+    image: ghcr.io/foundry-rs/foundry:latest
+    restart: unless-stopped
+    entrypoint: ['anvil', '--chain-id', '5042002', '--host', '0.0.0.0', '--state', '/chain/anvil-state.json', '--silent']
+    volumes: [chain:/chain]
+
+  # Deploys MockUSDC + RoundEscrow and funds the wallets, then exits. Idempotent.
+  chain-init:
+    image: ghcr.io/foundry-rs/foundry:latest
+    entrypoint: ['bash', '/scripts/chain-init.sh']
+    environment:
+      ARC_RPC_URL: http://anvil:8545
+      AGENT_MASTER_MNEMONIC: ${AGENT_MASTER_MNEMONIC}
+    volumes:
+      - chain:/chain
+      - ../packages/contracts:/contracts:ro
+      - ./chain-init.sh:/scripts/chain-init.sh:ro
+    depends_on: [anvil]
+
+  api:
+    build:
+      context: ..
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://agentipo:${POSTGRES_PASSWORD:-agentipo}@postgres:5432/agentipo
+      API_PUBLIC_URL: https://api.${DOMAIN}
+      CORS_ORIGIN: https://${DOMAIN}
+      ARC_RPC_URL: http://anvil:8545
+      ARC_PLATFORM_PRIVATE_KEY: ${ARC_PLATFORM_PRIVATE_KEY}
+      AGENT_MASTER_MNEMONIC: ${AGENT_MASTER_MNEMONIC}
+      DEMO_SIGNALS: ${DEMO_SIGNALS:-true}
+      DECISION_ENGINE: ${DECISION_ENGINE:-auto}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      GRAPH_TOKEN_API_JWT: ${GRAPH_TOKEN_API_JWT:-}
+      GRAPH_GATEWAY_API_KEY: ${GRAPH_GATEWAY_API_KEY:-}
+      GRAPH_MESSARI_DEX_SUBGRAPH_ID: ${GRAPH_MESSARI_DEX_SUBGRAPH_ID:-}
+      HEDERA_OPERATOR_ID: ${HEDERA_OPERATOR_ID:-}
+      HEDERA_OPERATOR_KEY: ${HEDERA_OPERATOR_KEY:-}
+      HEDERA_PAYTO_ACCOUNT_ID: ${HEDERA_PAYTO_ACCOUNT_ID:-}
+      X402_GATE_REPORTS: ${X402_GATE_REPORTS:-false}
+      PRIVY_APP_ID: ${PRIVY_APP_ID:-}
+      PRIVY_JWKS_JSON: ${PRIVY_JWKS_JSON:-}
+    volumes: [chain:/chain]
+    depends_on:
+      postgres: { condition: service_healthy }
+      chain-init: { condition: service_completed_successfully }
+
+  web:
+    build:
+      context: ..
+      dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: https://api.${DOMAIN}
+        NEXT_PUBLIC_PRIVY_APP_ID: ${NEXT_PUBLIC_PRIVY_APP_ID:-}
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_API_URL: https://api.${DOMAIN}
+    depends_on: [api]
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports: ['80:80', '443:443']
+    environment:
+      DOMAIN: ${DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on: [web, api]
+
+volumes:
+  pgdata:
+  chain:
+  caddy-data:
+  caddy-config:

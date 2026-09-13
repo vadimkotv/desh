@@ -38,7 +38,7 @@ export function OperatorActions({ round, releasedCount }: OperatorActionsProps) 
             <ActionButton label="Release next" pendingLabel="Releasing…" size="xs" run={() => api.releaseMilestone(round.id)} successText={() => 'released'} onSuccess={() => router.refresh()} />
           )}
         </Row>
-        <Row label="3 · settle exit" hint={`investors hold ${bpsShare(round.equityBps)} — enter the headline valuation`}>
+        <Row label="3 · settle exit" hint={`investors hold ${bpsShare(round.equityBps)} of the company`} stacked>
           <ExitForm roundId={round.id} equityBps={round.equityBps} raisedUsdc={round.raisedUsdc} />
         </Row>
         <Row label="sync" hint="re-read escrow state from Arc">
@@ -49,9 +49,9 @@ export function OperatorActions({ round, releasedCount }: OperatorActionsProps) 
   );
 }
 
-function Row({ label, hint, children }: { label: string; hint: string; children: ReactNode }) {
+function Row({ label, hint, children, stacked = false }: { label: string; hint: string; children: ReactNode; stacked?: boolean }) {
   return (
-    <div className="flex flex-col gap-1.5 border-t border-line pt-3 first:border-0 first:pt-0 sm:flex-row sm:items-center sm:justify-between">
+    <div className={`flex flex-col gap-1.5 border-t border-line pt-3 first:border-0 first:pt-0 ${stacked ? '' : 'sm:flex-row sm:items-center sm:justify-between'}`}>
       <div>
         <p className="eyebrow">{label}</p>
         <p className="font-mono text-[10.5px] text-dim">{hint}</p>

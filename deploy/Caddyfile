@@ -1,0 +1,26 @@
+{
+	email {$ACME_EMAIL}
+}
+
+# The dashboard.
+{$DOMAIN} {
+	encode zstd gzip
+	reverse_proxy web:3000
+}
+
+# The API on its own hostname. With sslip.io this needs no DNS setup at all:
+# api.203-0-113-10.sslip.io resolves to 203.0.113.10 just like the bare name does.
+api.{$DOMAIN} {
+	encode zstd gzip
+
+	# The live pipeline is Server-Sent Events. Without disabling the response buffer
+	# Caddy holds each frame until the stream ends, and the stepper never animates.
+	@sse {
+		path /events /runs/*/events
+	}
+	reverse_proxy @sse api:4000 {
+		flush_interval -1
+	}
+
+	reverse_proxy api:4000
+}
